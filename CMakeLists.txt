@@ -16,6 +16,7 @@ set(PROJECT_SOURCES
         main.cpp
         z80.hpp
         mainwindow.h mainwindow.cpp
+	maincli.h maincli.cpp
         memoryview.h memoryview.cpp
         memorytablemodel.h memorytablemodel.cpp
         system.h system.cpp
