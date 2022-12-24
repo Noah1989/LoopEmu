@@ -5,8 +5,8 @@
 MainWindow::MainWindow(System *system, QWidget *parent)
     : QMainWindow(parent),
       mdiArea(new QMdiArea),
-      lowerMemoryView(new MemoryView(system->lowerMemory)),
-      upperMemoryView(new MemoryView(system->upperMemory))
+      lowerMemoryView(new MemoryView(system->lowerMemory, 0x0000)),
+      upperMemoryView(new MemoryView(system->upperMemory, 0x8000))
 {
     setCentralWidget(mdiArea);
     addToDock(lowerMemoryView, "Lower Memory");

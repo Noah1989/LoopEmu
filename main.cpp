@@ -10,17 +10,17 @@ int main(int argc, char *argv[])
 
     bool noGui = false;
     for (int i = 0; i < argc; i++) {
-	if (strcmp(argv[i], "--no-gui") == 0) {
+        if (strcmp(argv[i], "--no-gui") == 0) {
             noGui = true;
-	    break;
-	}
+            break;
+        }
     }
 
     if (noGui) {
-	QCoreApplication a(argc, argv);
-	MainCli c(&s);
-	c.run();
-	return a.exec();
+        QCoreApplication a(argc, argv);
+        MainCli c(&s);
+        c.run();
+        return a.exec();
     } else {
         QApplication a(argc, argv);
         MainWindow w(&s);

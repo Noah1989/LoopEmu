@@ -1,8 +1,9 @@
 #include "memorytablemodel.h"
 
-MemoryTableModel::MemoryTableModel(std::vector<uint8_t> &memory, QObject *parent)
+MemoryTableModel::MemoryTableModel(std::vector<uint8_t> &memory, int offset, QObject *parent)
     : QAbstractTableModel{parent},
-      memory(memory)
+      memory(memory),
+      offset(offset)
 {
 
 }
@@ -21,8 +22,21 @@ QVariant MemoryTableModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole) {
         uint16_t addr = index.row() * columnCount() + index.column();
-        return QString("%1").arg(memory[addr], 2, 16, QChar('0'));
+        return QString("%1").arg(memory[addr], 2, 16, QChar('0')).toUpper();
     }
 
     return QVariant();
 }
+
+QVariant MemoryTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole) {
+        if (orientation == Qt::Horizontal) {
+            return QString("%1").arg(section, 1, 16, QChar('0')).toUpper();
+        } else {
+            return QString("%1").arg(offset + section * columnCount(), 4, 16, QChar('0')).toUpper();
+        }
+    }
+    return QVariant();
+}
+
