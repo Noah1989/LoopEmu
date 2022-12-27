@@ -13,9 +13,11 @@ MainWindow::MainWindow(System *system, QWidget *parent)
     addToDock(Qt::RightDockWidgetArea, lowerMemoryView, "Lower Memory");
     addToDock(Qt::RightDockWidgetArea, upperMemoryView, "Upper Memory");
     QDockWidget *cpuDock = addToDock(Qt::LeftDockWidgetArea, cpuView, "CPU");
-    addToDock(Qt::LeftDockWidgetArea, new QWidget(), "");
+    resizeDocks({cpuDock}, {1}, Qt::Horizontal);
 
-    resizeDocks({cpuDock}, {0}, Qt::Horizontal);
+    connect(system, &System::frame, lowerMemoryView, &MemoryView::update);
+    connect(system, &System::frame, upperMemoryView, &MemoryView::update);
+    connect(system, &System::frame, cpuView, &CpuView::update);
 }
 
 MainWindow::~MainWindow()

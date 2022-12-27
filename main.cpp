@@ -3,6 +3,7 @@
 #include "system.h"
 
 #include <QApplication>
+#include <QObject>
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +23,8 @@ int main(int argc, char *argv[])
         c.run();
         return a.exec();
     } else {
-        QApplication a(argc, argv);
+        QApplication a(argc, argv);        
+        QObject::connect(&a, &QApplication::lastWindowClosed, &s, &System::stop);
         MainWindow w(&s);
         w.show();
         return a.exec();

@@ -8,7 +8,10 @@ class MemoryView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent = nullptr);
+    MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent = nullptr);
+
+public slots:
+    void update();
 
 private:
     QTableView *tableView;

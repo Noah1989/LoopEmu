@@ -1,6 +1,7 @@
 #include "memorytablemodel.h"
 #include "memoryview.h"
 
+#include <QFontDatabase>
 #include <QHBoxLayout>
 #include <QHeaderView>
 
@@ -8,6 +9,7 @@ MemoryView::MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent
     : QWidget{parent},
       tableView(new QTableView)
 {
+    tableView->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     tableView->setModel(new MemoryTableModel(memory, offset));
     tableView->horizontalHeader()->setMinimumSectionSize(1);
     tableView->verticalHeader()->setMinimumSectionSize(1);
@@ -28,7 +30,12 @@ MemoryView::MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent
     tableView->setMinimumWidth(w);
     //tableView->setMaximumWidth(w);
     //setMaximumWidth(w);
-    QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(tableView);    
+    QHBoxLayout *layout = new QHBoxLayout(this);    
+    layout->addWidget(tableView);
+}
+
+void MemoryView::update()
+{
+    tableView->update();
 }
 

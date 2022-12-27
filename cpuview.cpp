@@ -1,11 +1,12 @@
 #include "cpuview.h"
 
 #include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
+#include <QFontDatabase>
+#include <queue>
 
 CpuView::CpuView(Z80 &cpu, QWidget *parent)
-    : QWidget{parent}
+    : QWidget{parent}, updaters(), freqLabel(new QLabel)
 {
     QGridLayout *layout = new QGridLayout(this);
 
@@ -60,6 +61,12 @@ CpuView::CpuView(Z80 &cpu, QWidget *parent)
     layout->addWidget(new QLabel(QString("R")), 6, 2);
     layout->addWidget(makeRegisterView(&cpu.reg.R), 6, 3);
 
+    freqLabel->setText(QString("0 MHz"));
+    layout->addWidget(freqLabel, 6, 4, 1, 4, Qt::AlignRight);
+
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding), 7, 0);
+
+    update(0);
 }
 
 QWidget* CpuView::makeRegisterView(uint8_t *data)
@@ -68,14 +75,43 @@ QWidget* CpuView::makeRegisterView(uint8_t *data)
     widget->setInputMask(QString("HH;0"));
     widget->setMinimumWidth(widget->fontMetrics().boundingRect(QChar('0')).width()*4);
     widget->setReadOnly(true);
+    updaters.push_back([widget, data](){
+        widget->setText(QString("%1").arg(*data, 2, 16, QChar('0')).toUpper());
+    });
     return widget;
 }
 
 QWidget* CpuView::makeRegisterView(uint16_t *data)
 {
     QLineEdit *widget = new QLineEdit();
+    widget->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     widget->setInputMask(QString("HHHH;0"));
     widget->setMinimumWidth(widget->fontMetrics().boundingRect(QChar('0')).width()*6);
     widget->setReadOnly(true);
+    updaters.push_back([widget, data](){
+        widget->setText(QString("%1").arg(*data, 4, 16, QChar('0')).toUpper());
+    });
     return widget;
+}
+
+void CpuView::update(long cycles)
+{
+    auto thisClock = std::chrono::high_resolution_clock::now();
+    static auto lastClock = thisClock;
+    static int nsamples = 180;
+    static std::vector<double> cycleSamples(nsamples, 0.0);
+    static std::vector<double> clockSamples(nsamples, 0.0);
+    static int index = 0;
+    if (lastClock != thisClock && cycles > 0) {
+        double nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(thisClock - lastClock).count();
+        cycleSamples[index] = cycles;
+        clockSamples[index] = nanos / 1000.0;
+        index = (index+1) % nsamples;
+        double average = std::reduce(cycleSamples.begin(), cycleSamples.end()) / std::reduce(clockSamples.begin(), clockSamples.end()) ;
+        freqLabel->setText(QString("%1 MHz").arg(average, 0, 'f', 6));
+    }
+    lastClock = thisClock;
+    for (auto &fn : updaters) {
+        fn();
+    }
 }
