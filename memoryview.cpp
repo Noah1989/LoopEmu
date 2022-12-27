@@ -3,7 +3,6 @@
 
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QScrollBar>
 
 MemoryView::MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent)
     : QWidget{parent},

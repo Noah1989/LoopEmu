@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "cpuview.h"
 #include "memoryview.h"
 #include "system.h"
 
@@ -19,6 +20,7 @@ private:
     QMdiArea *mdiArea;
     MemoryView *lowerMemoryView;
     MemoryView *upperMemoryView;
-    void addToDock(QWidget *widget, const QString &title);
+    CpuView *cpuView;
+    QDockWidget* addToDock(Qt::DockWidgetArea area, QWidget *widget, const QString &title);
 };
 #endif // MAINWINDOW_H

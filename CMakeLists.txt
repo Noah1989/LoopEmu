@@ -19,6 +19,7 @@ set(PROJECT_SOURCES
 	maincli.h maincli.cpp
         memoryview.h memoryview.cpp
         memorytablemodel.h memorytablemodel.cpp
+        cpuview.h cpuview.cpp
         system.h system.cpp
 )
 
