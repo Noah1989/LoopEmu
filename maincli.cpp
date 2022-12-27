@@ -1,7 +1,8 @@
 #include "maincli.h"
 
 MainCli::MainCli(System *system, QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      consoleListener(new QConsoleListener)
 {
 }
 

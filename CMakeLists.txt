@@ -17,6 +17,8 @@ set(PROJECT_SOURCES
         z80.hpp
         mainwindow.h mainwindow.cpp
 	maincli.h maincli.cpp
+	QConsoleListener/src/qconsolelistener.h
+	QConsoleListener/src/qconsolelistener.cpp
         memoryview.h memoryview.cpp
         memorytablemodel.h memorytablemodel.cpp
         cpuview.h cpuview.cpp
