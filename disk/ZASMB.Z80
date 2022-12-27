@@ -624,7 +624,7 @@ stch4	ret
 ;
 ;	The next group of subroutines is for the output listing
 ;
-asmpc	push	hl		;assemble a "equ $" type line for listing
+asmpcx	push	hl		;assemble a "equ $" type line for listing
 	push	de
 	ld	hl,(pc)
 	ld	de,pcbuff
@@ -730,7 +730,7 @@ asmlin	;line display type
 	ld	a,(lintyp)
 	cp	a,codtyp
 	jr	nz,asml2
-	call	asmpc		;line  pc   code      op    arg  
+	call	asmpcx		;line  pc   code      op    arg  
 	call	asmcod
 	jr	asml9
 asml2	cp	a,comtyp	;line                 list|comment
@@ -738,12 +738,12 @@ asml2	cp	a,comtyp	;line                 list|comment
 	jp	asml9
 asml3	cp	a,dstyp		;line  pc  (length)   ds   length
 	jr	nz,asml4
-	call	asmpc
+	call	asmpcx
 	call	asmval
 	jp	asml9
 asml4	cp	a,dbtyp		;line  pc  data	     db	   data
 	jr	nz,asml5
-	call	asmpc
+	call	asmpcx
 	ld	hl,datbff
 	ld	(datfas),hl
 	call	asmdat
@@ -753,7 +753,7 @@ asml5	cp	a,equtyp	;line     (value)    equ   value
 	call	blkpcb
 	call	asmval
 	jp	asml9
-asml6	call	asmpc		;line  pc           org     pc
+asml6	call	asmpcx		;line  pc           org     pc
 	call	blkcdb
 asml9	ret
 ;
@@ -2133,7 +2133,7 @@ xprshn	push	hl
  	call	readch		;readch
 	cp	a,'a'
 	jr	nc,xprn0	;if (ch in letters)
-	cp	a,''
+	cp	a,0
 	jr	nz,xprn1
 	jr	xprn01
 xprn0	cp	a,'z'+1
@@ -3660,7 +3660,7 @@ psdtab	dw	equop		; 1 equ
 	dw	endop		; 5 end
 	dw	orgop		; 6 org
 	dw	listop		; 7 list
-	dw	include		; 8
+	dw	inclop		; 8
 	dw	ifop		; 9 if
 	dw	endifop		;10 endif
 	dw	forgop		;11 false origin
@@ -3869,7 +3869,7 @@ mvnm1	ld	a,(hl)
 level	dw	0
 ppfcb	ds	2
 ;
-include	push	hl
+inclop	push	hl
 	push	de
 	ld	de,(level)	;HL=^index[level]
 	ld	hl,buffers
@@ -4616,4 +4616,3 @@ symtab	ds	0	;first available space in "symtab"
 	end
 ; 
 ;;
-
