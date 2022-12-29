@@ -20,7 +20,6 @@ set(PROJECT_SOURCES
 	QConsoleListener/src/qconsolelistener.h
 	QConsoleListener/src/qconsolelistener.cpp
         memoryview.h memoryview.cpp
-        memorytablemodel.h memorytablemodel.cpp
         cpuview.h cpuview.cpp
         vgaview.h vgaview.cpp
         system.h system.cpp

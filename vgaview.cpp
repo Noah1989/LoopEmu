@@ -46,8 +46,17 @@ void VgaView::paintEvent(QPaintEvent*) {
         dirty = false;
     }
     QPainter painter(this);
-    painter.fillRect(0, 0, width(), height(), Qt::black);
-    painter.drawImage((width()-640)/2, (height()-480)/2, image);
+    painter.fillRect(0, 0, width(), height(), Qt::black);    
+    int x, y;
+    if (width()>=1280 && height()>=960) {
+        painter.scale(2, 2);
+        x = (width()-1280)/4;
+        y = (height()-960)/4;
+    } else {
+        x = (width()-640)/2;
+        y = (height()-480)/2;
+    }
+    painter.drawImage(x, y, image);
 }
 
 void VgaView::render()
