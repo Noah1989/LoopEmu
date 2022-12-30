@@ -76,3 +76,7 @@ void System::stop()
     }
     emit stopped();
 }
+
+void System::serialIn(uint8_t c) {
+    emit serialOut(c);
+}

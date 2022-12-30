@@ -21,10 +21,12 @@ public:
 signals:
     void frame(int cycles);
     void stopped();
+    void serialOut(uint8_t c);
 
 public slots:
     void start();
     void stop();
+    void serialIn(uint8_t c);
 
 private:    
     static unsigned char readByte(void* arg, unsigned short addr);
