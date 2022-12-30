@@ -23,7 +23,6 @@ set(PROJECT_SOURCES
 	maincli.h maincli.cpp
 	consolelistener.h consolelistener.cpp
         memoryview.h memoryview.cpp
-        memorytablemodel.h memorytablemodel.cpp
         cpuview.h cpuview.cpp
         vgaview.h vgaview.cpp
         system.h system.cpp

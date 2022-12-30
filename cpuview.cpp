@@ -74,7 +74,7 @@ QWidget* CpuView::makeRegisterView(uint8_t *data)
     QLineEdit *widget = new QLineEdit();
     widget->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     widget->setInputMask(QString("HH;0"));
-    widget->setMinimumWidth(widget->fontMetrics().boundingRect(QChar('0')).width()*4);
+    widget->setMinimumWidth(widget->fontMetrics().size(0, "0").width()*3);
     widget->setReadOnly(true);
     updaters.push_back([widget, data](){
         widget->setText(QString("%1").arg(*data, 2, 16, QChar('0')).toUpper());
@@ -87,7 +87,7 @@ QWidget* CpuView::makeRegisterView(uint16_t *data)
     QLineEdit *widget = new QLineEdit();
     widget->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     widget->setInputMask(QString("HHHH;0"));
-    widget->setMinimumWidth(widget->fontMetrics().boundingRect(QChar('0')).width()*6);
+    widget->setMinimumWidth(widget->fontMetrics().size(0, "0").width()*5);
     widget->setReadOnly(true);
     updaters.push_back([widget, data](){
         widget->setText(QString("%1").arg(*data, 4, 16, QChar('0')).toUpper());
