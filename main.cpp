@@ -8,9 +8,6 @@
 int main(int argc, char *argv[])
 {
     std::srand(unsigned(std::time(nullptr)));
-    System s;
-
-    s.load("disk/bios.hex");
 
     bool noGui = false;
     for (int i = 0; i < argc; i++) {
@@ -22,14 +19,16 @@ int main(int argc, char *argv[])
 
     if (noGui) {
         QCoreApplication a(argc, argv);
+        System s;
         MainCli c(&s);
         c.run();
         return a.exec();
     } else {
         QApplication a(argc, argv);
         a.setStyle("Fusion");
-        QObject::connect(&a, &QApplication::lastWindowClosed, &s, &System::stop);
+        System s;
         MainWindow w(&s);
+        QObject::connect(&a, &QApplication::lastWindowClosed, &s, &System::stop);
         w.show();
         return a.exec();
     }

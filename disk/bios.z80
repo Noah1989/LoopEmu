@@ -1,8 +1,23 @@
-charmap equ	6000h
+charmap equ	5000h ;.. 6fffh character bitmap
+temp	equ	7ff0h ;.. 7ff7h scratch space
+timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
 
+; video I/O
+vscrx	equ	0b0h ; scroll x (lower byte)
+vscry	equ	0b1h ; scroll y (lower byte)
+vscrh	equ	0b2h ; scroll x/y high bits, modifiers
+vadrl	equ	0b3h ; video address (lower byte)
+vadrh	equ	0b4h ; video address (upper byte)
+vname	equ	0b8h ; name table (select pattern for each tile)
+vattr	equ	0b9h ; attribute table (select palette for each tile)
+vpatt	equ	0bah ; pattern table (256 8x8 patterns, 32 bytes each)
+vpale	equ	0bbh ; palette table (512 palettes, 16 8-bit colors each)
+vincr	equ	4    ; add this to I/O port no. for address auto increment
+
+; boot code
 	org	0
 	di
-	ld	sp, 7ff0h
+	ld	sp,temp
 	jp	init
 ; rst vectors
 	org	08h
@@ -17,7 +32,7 @@ charmap equ	6000h
 	call	error
 	org	30h
 	call	error
-; rst 38h (opcode ff)
+; rst 38h (opcode ff) -> error handler
 	org	38h
 error	di
 	halt
@@ -28,14 +43,55 @@ error	di
 	rst	38h ; error
 
 	org	80h
-init	ld	hl, last
-	ld	de, last+1
-	ld	bc, charmap-last-1
+; clear free memory
+init	ld	hl,last
+	ld	de,last+1
+	ld	bc,charmap-last-1
 	ldir
-	ld	hl, 8000h
-	ld	de, 8001h
-	ld	bc, 7fffh
-	ld	(hl), 0ffh
+	ld	hl,8000h
+	ld	de,8001h
+	ld	bc,7fffh
+	ld	(hl),0ffh
 	ldir
+; load character map
+	xor	a,a
+	out	(vadrl),a
+	out	(vadrh),a
+	ld	ix,charmap
+	ld	c, 0
+init0	exx	; alternate
+	ld	b,4
+init1	ld	d,(ix+2)
+	ld	e,(ix+18)
+	ld	h,(ix+3)
+	ld	l,(ix+19)
+	exx	; normal
+	ld	d,(ix+0)
+	ld	e,(ix+16)
+	ld	h,(ix+1)
+	ld	l,(ix+17)
+	ld	b,8
+init2	ld	a,80h ; falls into carry after 8 rotations
+init21	rl	d
+	rra
+	rl	e
+	rra
+	rl	h
+	rra
+	rl	l
+	rra
+	exx	; always executed twice
+	jr	nc,init21
+	out	(vpatt+vincr),a
+	djnz	init2
+	ld	de,4
+	add	ix,de
+	exx	; alternate
+	djnz	init1
+	exx	; normal
+	ld	de,16
+	add	ix,de
+	inc	c
+	jr	nz,init0
 
 last	rst	38h ; error
