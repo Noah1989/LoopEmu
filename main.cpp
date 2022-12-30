@@ -7,6 +7,7 @@
 
 int main(int argc, char *argv[])
 {
+    std::srand(unsigned(std::time(nullptr)));
     System s;
 
     bool noGui = false;
@@ -23,7 +24,8 @@ int main(int argc, char *argv[])
         c.run();
         return a.exec();
     } else {
-        QApplication a(argc, argv);        
+        QApplication a(argc, argv);
+        a.setStyle("Fusion");
         QObject::connect(&a, &QApplication::lastWindowClosed, &s, &System::stop);
         MainWindow w(&s);
         w.show();

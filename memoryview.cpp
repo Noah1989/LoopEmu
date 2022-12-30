@@ -36,6 +36,7 @@ MemoryView::MemoryView(std::vector<uint8_t> &memory, int offset, QWidget *parent
 
 void MemoryView::update()
 {
-    tableView->update();
+    emit tableView->model()->dataChanged(
+                tableView->indexAt(tableView->rect().topLeft()),
+                tableView->indexAt(tableView->rect().bottomRight()));
 }
-

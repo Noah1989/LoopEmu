@@ -25,6 +25,7 @@ set(PROJECT_SOURCES
         memoryview.h memoryview.cpp
         memorytablemodel.h memorytablemodel.cpp
         cpuview.h cpuview.cpp
+        vgaview.h vgaview.cpp
         system.h system.cpp
 )
 

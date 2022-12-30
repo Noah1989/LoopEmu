@@ -8,6 +8,12 @@ System::System(QObject *parent)
       thread(new QThread(this)),
       timer(nullptr)
 {    
+    std::generate(lowerMemory.begin(), lowerMemory.end(), std::rand);
+    std::generate(upperMemory.begin(), upperMemory.end(), std::rand);
+    std::generate(nameMemory.begin(), nameMemory.end(), std::rand);
+    std::generate(attrMemory.begin(), attrMemory.end(), std::rand);
+    std::generate(pattMemory.begin(), pattMemory.end(), std::rand);
+    std::generate(paleMemory.begin(), paleMemory.end(), std::rand);
     cpu.setupCallbackFP(readByte, writeByte, inPort, outPort);
     moveToThread(thread);
     connect(thread, &QThread::started, this, &System::start);

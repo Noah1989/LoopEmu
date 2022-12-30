@@ -14,6 +14,11 @@ public:
     ~System();
     std::vector<uint8_t> lowerMemory;
     std::vector<uint8_t> upperMemory;
+    std::array<uint8_t, 0x2000> nameMemory;
+    std::array<uint8_t, 0x2000> attrMemory;
+    std::array<uint8_t, 0x2000> pattMemory;
+    std::array<uint8_t, 0x2000> paleMemory;
+
     Z80 cpu;
     double mhz;
     double fps;
