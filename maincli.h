@@ -2,7 +2,7 @@
 #define MAINCLI_H
 
 #include "system.h"
-#include "QConsoleListener/src/qconsolelistener.h"
+#include "consolelistener.h"
 
 #include <QObject>
 
@@ -16,7 +16,7 @@ public:
     void run();
 
 private:
-    QConsoleListener *consoleListener;
+    ConsoleListener *consoleListener;
 
 };
 #endif // MAINCLI_H

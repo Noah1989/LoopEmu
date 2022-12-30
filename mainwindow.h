@@ -4,6 +4,7 @@
 #include "cpuview.h"
 #include "memoryview.h"
 #include "system.h"
+#include "vgaview.h"
 
 #include <QMainWindow>
 #include <QMdiArea>
@@ -21,6 +22,7 @@ private:
     MemoryView *lowerMemoryView;
     MemoryView *upperMemoryView;
     CpuView *cpuView;
+    VgaView *vgaView;
     QDockWidget* addToDock(Qt::DockWidgetArea area, QWidget *widget, const QString &title);
 };
 #endif // MAINWINDOW_H

@@ -72,6 +72,7 @@ CpuView::CpuView(Z80 &cpu, QWidget *parent)
 QWidget* CpuView::makeRegisterView(uint8_t *data)
 {
     QLineEdit *widget = new QLineEdit();
+    widget->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     widget->setInputMask(QString("HH;0"));
     widget->setMinimumWidth(widget->fontMetrics().boundingRect(QChar('0')).width()*4);
     widget->setReadOnly(true);
