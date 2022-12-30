@@ -26,6 +26,7 @@ set(PROJECT_SOURCES
         cpuview.h cpuview.cpp
         vgaview.h vgaview.cpp
         system.h system.cpp
+        intelhexclass.h intelhexclass.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

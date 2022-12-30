@@ -10,13 +10,7 @@ int main(int argc, char *argv[])
     std::srand(unsigned(std::time(nullptr)));
     System s;
 
-    std::vector<uint8_t> test = {
-        0x21, 0x06, 0x00,
-        0x34,
-        0x18, 0xfd,
-        0x00
-    };
-    std::copy(test.begin(), test.end(), s.lowerMemory.begin());
+    s.load("disk/bios.hex");
 
     bool noGui = false;
     for (int i = 0; i < argc; i++) {

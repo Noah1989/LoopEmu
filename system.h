@@ -23,6 +23,8 @@ public:
     double mhz;
     double fps;
 
+    void load(const std::string &hexFileName);
+
 signals:
     void frame(int cycles);
     void stopped();

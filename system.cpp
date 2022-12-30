@@ -1,4 +1,7 @@
 #include "system.h"
+#include "intelhexclass.h"
+
+#include <fstream>
 
 System::System(QObject *parent)
     : QObject{parent},
@@ -24,6 +27,24 @@ System::~System()
 {
     thread->quit();
     thread->wait();
+}
+
+void System::load(const std::string &hexFileName)
+{
+    std::ifstream intelHexInput;
+    intelHexInput.open(hexFileName, ifstream::in);
+    intelhex data;
+    intelHexInput >> data;
+    data.begin();
+    while (true) {
+        uint8_t byte;
+        data.getData(&byte);
+        writeByte(this, data.currentAddress(), byte);
+        if (data.endOfData()) {
+            break;
+        }
+        data.incrementAddress();
+    }
 }
 
 unsigned char System::readByte(void *arg, unsigned short addr)
