@@ -1,0 +1,41 @@
+charmap equ	6000h
+
+	org	0
+	di
+	ld	sp, 7ff0h
+	jp	init
+; rst vectors
+	org	08h
+	call	error
+	org	10h
+	call	error
+	org	18h
+	call	error
+	org	20h
+	call	error
+	org	28h
+	call	error
+	org	30h
+	call	error
+; rst 38h (opcode ff)
+	org	38h
+error	di
+	halt
+	jr	error
+
+; non-maskable interrupt
+	org	66h
+	rst	38h ; error
+
+	org	80h
+init	ld	hl, last
+	ld	de, last+1
+	ld	bc, charmap-last-1
+	ldir
+	ld	hl, 8000h
+	ld	de, 8001h
+	ld	bc, 7fffh
+	ld	(hl), 0ffh
+	ldir
+
+last	rst	38h ; error
