@@ -11,6 +11,7 @@ public:
             std::array<uint8_t, 0x2000> &attr,
             std::array<uint8_t, 0x2000> &patt,
             std::array<uint8_t, 0x2000> &pale,
+            uint8_t &vscrx, uint8_t &vscry, uint8_t &vscrh,
             QWidget *parent = nullptr);
     QSize minimumSizeHint() const override;
 
@@ -25,6 +26,9 @@ private:
     std::array<uint8_t, 0x2000> &attr;
     std::array<uint8_t, 0x2000> &patt;
     std::array<uint8_t, 0x2000> &pale;
+    uint8_t &vscrx;
+    uint8_t &vscry;
+    uint8_t &vscrh;
     QRgb* pixels;
     QImage image;
     bool dirty;

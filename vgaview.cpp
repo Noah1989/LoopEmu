@@ -6,9 +6,11 @@ VgaView::VgaView(std::array<uint8_t, 0x2000> &name,
                  std::array<uint8_t, 0x2000> &attr,
                  std::array<uint8_t, 0x2000> &patt,
                  std::array<uint8_t, 0x2000> &pale,
+                 uint8_t &vscrx, uint8_t &vscry, uint8_t &vscrh,
                  QWidget *parent)
     : QWidget{parent},
       name(name), attr(attr), patt(patt), pale(pale),
+      vscrx(vscrx), vscry(vscry), vscrh(vscrh),
       pixels(new QRgb[640*480]),
       image((uchar*)pixels, 640, 480, QImage::Format_ARGB32),
       dirty(true)
@@ -62,18 +64,31 @@ void VgaView::paintEvent(QPaintEvent*) {
 void VgaView::render()
 {
     static uint8_t t = 0;
+    int sx =((vscrh & 0b00000011)<<8) + vscrx;
+    bool zx = vscrh & 0b00000100;
+    int sy =((vscrh & 0b00110000)<<4) + vscry;
+    bool zy = vscrh & 0b01000000;
+    bool tm = vscrh & 0b10000000;
+
     for (int x = 0; x < 640; ++x) {
         for (int y = 0; y < 480; ++y) {
-            int tx = x/8;
-            int ty = y/8;
-            int px = x%8;
-            int py = y%8;
+            int vx = ((zx?(x/2+2):(x+3))+sx)&0x3ff;
+            int vy = ((zy?(x/2+2):(y+4))+sy)&0x3ff;
+            int tx = vx/8;
+            int ty = vy/8 % 64;
+            if (tm) {
+                ty &= 0x3e;
+                ty |= (vy&0x200)>>9;
+            }
             int t = 128*ty + tx;
+            int px = vx%8;
+            int py = vy%8;
             int n = name[t];
             int a = attr[t];
             int p = patt[32*n + 8*(py/2) + px];
             int i = py%2 ? (p>>4)&0xf : p&0xf;
-            int c = pale[16*a + i];
+            int o = tm ? (vy&0x008)<<9 : (vy&0x200)<<3;
+            int c = pale[o + 16*a + i];
             pixels[640*y + x] = colors[c];
         }
     }

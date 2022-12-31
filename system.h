@@ -19,6 +19,9 @@ public:
     std::array<uint8_t, 0x2000> pattMemory;
     std::array<uint8_t, 0x2000> paleMemory;
     uint16_t vaddr;
+    uint8_t vscrx;
+    uint8_t vscry;
+    uint8_t vscrh;
 
     Z80 cpu;
     double mhz;

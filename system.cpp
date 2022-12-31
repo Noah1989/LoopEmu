@@ -81,6 +81,15 @@ void System::outPort(void *arg, unsigned short port, unsigned char value)
 {
     System *self = static_cast<System*>(arg);
     switch (port&0xff) {
+    case 0xb0:
+        self->vscrx = value;
+        break;
+    case 0xb1:
+        self->vscry = value;
+        break;
+    case 0xb2:
+        self->vscrh = value;
+        break;
     case 0xb3:
         self->vaddr &= 0xff00;
         self->vaddr |= value;

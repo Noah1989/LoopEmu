@@ -10,7 +10,8 @@ MainWindow::MainWindow(System *system, QWidget *parent)
       upperMemoryView(new MemoryView(system->upperMemory, 0x8000)),
       cpuView(new CpuView(system->cpu)),
       vgaView(new VgaView(system->nameMemory, system->attrMemory,
-                          system->pattMemory, system->paleMemory))
+                          system->pattMemory, system->paleMemory,
+                          system->vscrx, system->vscry, system->vscrh))
 {
     setCentralWidget(mdiArea);
     addToDock(Qt::RightDockWidgetArea, lowerMemoryView, "Lower Memory");
