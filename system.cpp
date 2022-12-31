@@ -112,15 +112,19 @@ void System::outPort(void *arg, unsigned short port, unsigned char value)
         break;
     case 0xbc:
         self->nameMemory[self->vaddr++] = value;
+        self->vaddr &= 0x1fff;
         break;
     case 0xbd:
         self->attrMemory[self->vaddr++] = value;
+        self->vaddr &= 0x1fff;
         break;
     case 0xbe:
         self->pattMemory[self->vaddr++] = value;
+        self->vaddr &= 0x1fff;
         break;
     case 0xbf:
         self->paleMemory[self->vaddr++] = value;
+        self->vaddr &= 0x1fff;
         break;
     }
 }

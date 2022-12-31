@@ -38,6 +38,9 @@ error	di
 	halt
 	jr	error
 
+	org	40h
+initmsg	db	'Loop Micro - Bootstrap Stage 1', 0
+
 ; non-maskable interrupt
 	org	66h
 	rst	38h ; error
@@ -103,6 +106,23 @@ init21	rl	d
 ; load palettes
 	ld	hl, plight
 	call	loadpal
+; clear name and attribute tables
+	ld	bc,2000h
+init3	ld	a,67h
+	out	(vattr),a
+	ld	a,' '
+	out	(vname+vincr),a
+	dec	bc
+	ld	a,b
+	or	a,c
+	jr	nz,init3
+; welcome message
+	xor	a
+	out	(vadrl),a
+	out	(vadrh),a
+	ld	c,vname+vincr
+	ld	hl,initmsg
+	call	outstr
 	rst	38h ; error
 
 ; load palettes from 24 colors pointed to by hl:
@@ -161,5 +181,14 @@ pdark	db	000h,005h,011h,015h,041h,045h,051h,054h
 plight	db	0ffh,0afh,0bbh,0bfh,0ebh,0efh,0fbh,0abh
 	db	0fch,00eh,023h,02bh,0c2h,0deh,0e3h,003h
 	db	057h,00dh,021h,028h,0c1h,0dch,0e1h,001h
+
+; output null terminated string at (hl) to device at port (c)
+; returns with hl pointing to the first byte after the string
+outstr	ld	a,(hl)
+	inc	hl
+	and	a,a
+	ret	z
+	out	(c),a
+	jr	outstr
 
 last	rst	38h ; error
