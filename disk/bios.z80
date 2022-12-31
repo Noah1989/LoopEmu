@@ -39,7 +39,8 @@ error	di
 	jr	error
 
 	org	40h
-initmsg	db	'Loop Micro - Bootstrap Stage 1', 0
+title	db	'Loop Micro - Bootstrap Stage 1'
+titleln	equ	$-title
 
 ; non-maskable interrupt
 	org	66h
@@ -120,9 +121,9 @@ init3	ld	a,67h
 	xor	a
 	out	(vadrl),a
 	out	(vadrh),a
-	ld	c,vname+vincr
-	ld	hl,initmsg
-	call	outstr
+	ld	bc,titleln*100h|[vname+vincr]
+	ld	hl,title
+	otir
 	rst	38h ; error
 
 ; load palettes from 24 colors pointed to by hl:
@@ -181,14 +182,5 @@ pdark	db	000h,005h,011h,015h,041h,045h,051h,054h
 plight	db	0ffh,0afh,0bbh,0bfh,0ebh,0efh,0fbh,0abh
 	db	0fch,00eh,023h,02bh,0c2h,0deh,0e3h,003h
 	db	057h,00dh,021h,028h,0c1h,0dch,0e1h,001h
-
-; output null terminated string at (hl) to device at port (c)
-; returns with hl pointing to the first byte after the string
-outstr	ld	a,(hl)
-	inc	hl
-	and	a,a
-	ret	z
-	out	(c),a
-	jr	outstr
 
 last	rst	38h ; error
