@@ -13,13 +13,22 @@ MainWindow::MainWindow(System *system, QWidget *parent)
                           system->pattMemory, system->paleMemory,
                           system->vscrx, system->vscry, system->vscrh))
 {
+    mdiArea->setOption(QMdiArea::DontMaximizeSubWindowOnActivation);
     setCentralWidget(mdiArea);
+
     addToDock(Qt::RightDockWidgetArea, lowerMemoryView, "Lower Memory");
     addToDock(Qt::RightDockWidgetArea, upperMemoryView, "Upper Memory");
     QDockWidget *cpuDock = addToDock(Qt::LeftDockWidgetArea, cpuView, "CPU");
     resizeDocks({cpuDock}, {1}, Qt::Horizontal);
 
-    mdiArea->addSubWindow(vgaView)->setWindowTitle("VGA Output");
+    QMdiSubWindow *vgaWindow = mdiArea->addSubWindow(vgaView);
+    vgaWindow->setWindowTitle("VGA Output");
+        connect(vgaWindow, &QMdiSubWindow::windowStateChanged, [this, vgaWindow](Qt::WindowStates oldState, Qt::WindowStates newState){
+        if (newState & Qt::WindowMaximized) {
+            vgaWindow->setWindowFlag(Qt::FramelessWindowHint);
+            mdiArea->setMinimumSize(640,480);
+        }
+    });
 
     connect(system, &System::frame, lowerMemoryView, &MemoryView::update);
     connect(system, &System::frame, upperMemoryView, &MemoryView::update);
