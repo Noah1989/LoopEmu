@@ -1,0 +1,12 @@
+; video I/O ports
+vscrx	equ	0b0h ; scroll x (lower byte)
+vscry	equ	0b1h ; scroll y (lower byte)
+vscrh	equ	0b2h ; scroll x/y high bits, modifiers
+vadrl	equ	0b3h ; video address (lower byte)
+vadrh	equ	0b4h ; video address (upper byte)
+vname	equ	0b8h ; name table (select pattern for each tile)
+vattr	equ	0b9h ; attribute table (select palette for each tile)
+vpatt	equ	0bah ; pattern table (256 8x8 patterns, 32 bytes each)
+vpale	equ	0bbh ; palette table (512 palettes, 16 8-bit colors each)
+vincr	equ	4    ; add this to I/O port no. for address auto increment
+

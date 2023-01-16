@@ -1,6 +1,7 @@
-all: bios.hex charmap.hex
+all: bios.hex charmap.hex test.hex
 
-bios.hex: *.inc
+bios.hex: *.inc *.def
+test.hex: *.def
 
 %.hex: %.z80
 	tnylpo zasmb $* hex
