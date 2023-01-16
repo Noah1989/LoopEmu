@@ -9,10 +9,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-SET(CURSES_USE_NCURSES TRUE)
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
-
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
@@ -20,8 +16,6 @@ set(PROJECT_SOURCES
         main.cpp
         z80.hpp
         mainwindow.h mainwindow.cpp
-	maincli.h maincli.cpp
-	consolelistener.h consolelistener.cpp
         memoryview.h memoryview.cpp
         cpuview.h cpuview.cpp
         vgaview.h vgaview.cpp
@@ -52,7 +46,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(LoopEmu PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${CURSES_LIBRARIES})
+target_link_libraries(LoopEmu PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(LoopEmu PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
