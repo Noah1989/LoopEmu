@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language id="z80" _name="Z80 Assembly" version="2.0" _section="Sources">
+	<metadata>
+		<property name="mimetypes">text/x-z80</property>
+		<property name="globs">*.z80;*.inc;*.def</property>
+		<property name="line-comment-start">;</property>
+	</metadata>
+	
+	<styles>
+		<style id="comment"		_name="Comment"				map-to="def:comment" />
+		<style id="undoc"		_name="Undocumented Instruction"	map-to="def:error" />
+		<style id="string"		_name="String"				map-to="def:string" />
+		<style id="preprocessor"	_name="Preprocessor"			map-to="def:preprocessor" />
+		<style id="included-file"	_name="Included File"			map-to="def:string" />
+		<style id="routine"		_name="System Routine"			map-to="def:special-char" />
+		<style id="label"		_name="Label"				map-to="def:identifier" />
+		<style id="char"		_name="Character"			map-to="def:character" />
+		<style id="escaped-char"	_name="Escaped Character"		map-to="def:special-char" />
+		<style id="keyword"		_name="Instructions"			map-to="def:keyword" />
+		<style id="pseudo"		_name="Pseudo Instructions"		map-to="def:preprocessor" />
+		<style id="registers"		_name="Registers"			map-to="def:type" />
+		<style id="decimal"		_name="Decimal number"			map-to="def:decimal" />
+		<style id="binary"		_name="Binary number"			map-to="def:base-n-integer" />
+		<style id="octal"		_name="Octal number"			map-to="def:base-n-integer" />
+		<style id="hexadecimal"		_name="Hexadecimal number"		map-to="def:base-n-integer" />
+	</styles>
+	
+	<default-regex-options case-sensitive="false" />
+	
+	<definitions>
+		<context id="z80" class="no-spell-check">
+			<include>
+				<context ref="gtk-doc:inline-docs-section" />
+				
+				<context id="comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+					<start>;</start>
+					<include>
+						<context ref="def:in-line-comment" />
+					</include>
+				</context>
+				
+				<context id="include" style-ref="preprocessor">
+					<match>^\s+include\s*(.*)</match>
+					<include>
+						<context id="included-file" sub-pattern="1" style-ref="included-file" />
+					</include>
+				</context>
+
+				<context id="string" style-ref="string" end-at-line-end="true" class="string" class-disabled="no-spell-check">
+					<start>"</start>
+					<end>"</end>
+					<include>
+						<context id="escape" style-ref="escaped-char">
+						<match>\\([\\\"\'nr]|[0-7]{1,3}|x[0-9A-Fa-f]+)</match>
+						</context>
+					</include>
+				</context>
+				
+				<context id="hexadecimal" style-ref="hexadecimal">
+					<match>\$[\dA-F]+\%]|\%[[\dA-F]+h\%]</match>
+				</context>
+				
+				<context id="octal" style-ref="octal">
+					<match>\%[0[0-7]+\%]|\%[[0-7]+o\%]</match>
+				</context>
+				
+				<context id="binary" style-ref="binary">
+					<match>%[01]+\%]|\%[[01]+b\%]</match>
+				</context>
+				
+				<context id="decimal" style-ref="decimal">
+					<match>\%[\d*\%]|\$|\*</match>
+				</context>
+				
+				<context id="label" style-ref="label">
+					<match>^\w+</match>
+				</context>
+				
+				<context id="keyword" style-ref="keyword">
+					<keyword>ex</keyword>
+					<keyword>exx</keyword>
+					<keyword>ld</keyword>
+					<keyword>ldd</keyword>
+					<keyword>lddr</keyword>
+					<keyword>ldi</keyword>
+					<keyword>ldir</keyword>
+					<keyword>pop</keyword>
+					<keyword>push</keyword>
+					<keyword>adc</keyword>
+					<keyword>add</keyword>
+					<keyword>cp</keyword>
+					<keyword>cpd</keyword>
+					<keyword>cpdr</keyword>
+					<keyword>cpi</keyword>
+					<keyword>cpir</keyword>
+					<keyword>cpl</keyword>
+					<keyword>daa</keyword>
+					<keyword>dec</keyword>
+					<keyword>inc</keyword>
+					<keyword>neg</keyword>
+					<keyword>sbc</keyword>
+					<keyword>sub</keyword>
+					<keyword>and</keyword>
+					<keyword>bit</keyword>
+					<keyword>ccf</keyword>
+					<keyword>or</keyword>
+					<keyword>res</keyword>
+					<keyword>scf</keyword>
+					<keyword>set</keyword>
+					<keyword>xor</keyword>
+					<keyword>rl</keyword>
+					<keyword>rla</keyword>
+					<keyword>rlc</keyword>
+					<keyword>rlca</keyword>
+					<keyword>rld</keyword>
+					<keyword>rr</keyword>
+					<keyword>rra</keyword>
+					<keyword>rrc</keyword>
+					<keyword>rrca</keyword>
+					<keyword>rrd</keyword>
+					<keyword>sla</keyword>
+					<keyword>sra</keyword>
+					<keyword>srl</keyword>
+					<keyword>call</keyword>
+					<keyword>djnz</keyword>
+					<keyword>jp</keyword>
+					<keyword>jr</keyword>
+					<keyword>nop</keyword>
+					<keyword>ret</keyword>
+					<keyword>reti</keyword>
+					<keyword>retn</keyword>
+					<keyword>rst</keyword>
+					<keyword>di</keyword>
+					<keyword>ei</keyword>
+					<keyword>halt</keyword>
+					<keyword>im</keyword>
+					<keyword>in</keyword>
+					<keyword>ind</keyword>
+					<keyword>indr</keyword>
+					<keyword>ini</keyword>
+					<keyword>inir</keyword>
+					<keyword>otdr</keyword>
+					<keyword>otir</keyword>
+					<keyword>out</keyword>
+					<keyword>outd</keyword>
+					<keyword>outi</keyword>
+				</context>
+				
+				<context id="pseudo" style-ref="pseudo">
+					<keyword>db</keyword>
+					<keyword>defb</keyword>
+					<keyword>dw</keyword>
+					<keyword>defw</keyword>
+					<keyword>ds</keyword>
+					<keyword>defs</keyword>
+					<keyword>equ</keyword>
+					<keyword>include</keyword>
+					<keyword>read</keyword>
+					<keyword>if</keyword>
+					<keyword>endif</keyword>
+					<keyword>list</keyword>
+					<keyword>org</keyword>
+					<keyword>forg</keyword>
+				</context>
+				
+				<context id="bcall" style-ref="keyword">
+					<match>^\s+b_?(call|jump)(\s*\(.*?\)|\s+.+?\%])</match>
+					<include>
+						<context id="included-file" sub-pattern="2" style-ref="routine" />
+					</include>
+				</context>
+				
+				<context id="undoc" style-ref="undoc">
+					<keyword>hx</keyword>
+					<keyword>hy</keyword>
+					<keyword>lx</keyword>
+					<keyword>ly</keyword>
+					<keyword>ixh</keyword>
+					<keyword>ixl</keyword>
+					<keyword>iyh</keyword>
+					<keyword>iyl</keyword>
+					<keyword>slia</keyword>
+					<keyword>sll</keyword>
+				</context>
+				
+				<context id="registers" style-ref="registers">
+					<keyword>af'</keyword>
+					<keyword>af</keyword>
+					<keyword>a</keyword>
+					<keyword>bc'</keyword>
+					<keyword>bc</keyword>
+					<keyword>b</keyword>
+					<keyword>c</keyword>
+					<keyword>de'</keyword>
+					<keyword>de</keyword>
+					<keyword>d</keyword>
+					<keyword>e</keyword>
+					<keyword>hl'</keyword>
+					<keyword>hl</keyword>
+					<keyword>h</keyword>
+					<keyword>ix</keyword>
+					<keyword>iy</keyword>
+					<keyword>i</keyword>
+					<keyword>l</keyword>
+					<keyword>r</keyword>
+				</context>
+				
+				<context id="char" end-at-line-end="true" style-ref="string">
+				<start>'</start>
+				<end>'</end>
+				<include>
+					<context ref="escape" />
+				</include>
+				</context>
+			</include>
+		</context>
+	</definitions>
+</language>
