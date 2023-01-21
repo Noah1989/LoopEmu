@@ -94,10 +94,12 @@ void System::outPort(void *arg, unsigned short port, unsigned char value)
     case 0xb3:
         self->vaddr &= 0xff00;
         self->vaddr |= value;
+        self->vaddr &= 0x1fff;
         break;
     case 0xb4:
         self->vaddr &= 0xff;
-        self->vaddr |= value<<4;
+        self->vaddr |= value<<8;
+        self->vaddr &= 0x1fff;
         break;
     case 0xb8:
         self->nameMemory[self->vaddr] = value;
