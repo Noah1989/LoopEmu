@@ -82,10 +82,10 @@ init	ld	hl,last
 	;ld	(hl),0ffh
 	;ldir
 ; initialize video
-	ld	ix, video
+	ld	ix,video
 	call	dvinit
 ; welcome message
-	ld	ix, video
+	ld	ix,video
 	ld	de, 0
 	rst	dvseek
 	ld	de,title

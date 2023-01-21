@@ -1,3 +1,70 @@
+	include	a:video.def
+	
 	org	8000h
-	halt
+	
+left	equ	4
+top	equ	2
+	
+	ld	l,left	; x coordinate
+	ld	h,top	; y coordinate
+	ld	b,0	; color
+	
+	; set position on screen
+cloop	ld	a,l
+	out	(vadrl),a
+	ld	a,h
+	out	(vadrh),a
+	
+	; draw color
+	ld	a,b
+	out	(vattr),a
+	; draw symbol, move right
+	ld	a,b
+	call	hexh
+	out	(vname+vincr),a
+	; draw color
+	ld	a,b
+	out	(vattr),a
+	; draw symbol
+	ld	a,b
+	call	hex
+	out	(vname),a
+	
+	; next color
+	inc	b
+	ret	z
+	
+	; move right
+	inc	l
+	inc	l
+	inc	l
+	
+	; check if end of line
+	ld	a,0fh
+	and	a,b
+	jr	nz,cloop
+	
+	; move down, go left
+	inc	h
+	ld	l,left
+	
+	; check for halfway point
+	ld	a,b
+	cp	a,80h
+	jr	nz,cloop
+	
+	; blank line
+	inc h
+	jr	cloop
+
+hexh	rrca
+	rrca
+	rrca
+	rrca
+hex	and	a,0fh
+	add	a,90h
+	daa
+	adc	a,40h
+	daa
+	ret
 	
