@@ -1,5 +1,5 @@
-theme	equ	0
-defattr	equ	07h
+theme	equ	1
+defattr	equ	67h
 
 	include	a:video.def
 

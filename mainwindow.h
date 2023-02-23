@@ -17,6 +17,10 @@ public:
     MainWindow(System *system, QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
+
 private:
     QMdiArea *mdiArea;
     MemoryView *lowerMemoryView;
@@ -24,5 +28,6 @@ private:
     CpuView *cpuView;
     VgaView *vgaView;
     QDockWidget* addToDock(Qt::DockWidgetArea area, QWidget *widget, const QString &title);
+    void onKeyEvent(QKeyEvent *event);
 };
 #endif // MAINWINDOW_H

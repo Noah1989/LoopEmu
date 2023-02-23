@@ -15,6 +15,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 set(PROJECT_SOURCES
         main.cpp
         z80.hpp
+        ps2.h ps2.cpp
         mainwindow.h mainwindow.cpp
         memoryview.h memoryview.cpp
         cpuview.h cpuview.cpp

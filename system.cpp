@@ -20,7 +20,7 @@ System::System(QObject *parent)
 
     load("disk/bios.hex");
     load("disk/charmap.hex");
-    load("disk/test.hex");
+    //load("disk/test.hex");
 
     cpu.setupCallbackFP(readByte, writeByte, inPort, outPort);
     moveToThread(thread);

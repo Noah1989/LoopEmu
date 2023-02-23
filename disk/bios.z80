@@ -3,6 +3,7 @@ stack	equ	7fe0h ; stack below this address
 vdata	equ	7fe0h ; data for video device
 temp	equ	7ff0h ;.. 7ff7h scratch space
 timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
+
 user	equ	8000h ; user code area
 
 ; boot code
@@ -76,11 +77,11 @@ init	ld	hl,last
 	ld	de,last+1
 	ld	bc,charmap-last-1
 	ldir
-	;ld	hl,user
-	;ld	de,user+1
-	;ld	bc,7fffh
-	;ld	(hl),0ffh
-	;ldir
+	ld	hl,user
+	ld	de,user+1
+	ld	bc,7fffh
+	ld	(hl),0ffh
+	ldir
 ; initialize video
 	ld	ix,video
 	call	dvinit
@@ -92,5 +93,5 @@ init	ld	hl,last
 	ld	bc,titleln
 	rst	dvwrite
 
-	call	user
+;	call	user
 last	rst	error

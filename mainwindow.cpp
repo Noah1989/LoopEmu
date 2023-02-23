@@ -1,7 +1,10 @@
 #include "mainwindow.h"
+#include "ps2.h"
 
 #include <QDockWidget>
 #include <QMdiSubWindow>
+#include <QKeyEvent>
+#include <iostream>
 
 MainWindow::MainWindow(System *system, QWidget *parent)
     : QMainWindow(parent),
@@ -46,4 +49,27 @@ QDockWidget* MainWindow::addToDock(Qt::DockWidgetArea area, QWidget *widget, con
     dock->setWidget(widget);
     addDockWidget(area, dock);
     return dock;
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *ev)
+{
+   onKeyEvent(ev);
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *ev)
+{
+    onKeyEvent(ev);
+}
+
+void MainWindow::onKeyEvent(QKeyEvent *ev) {
+    ps2Code code = ps2CodeFromEvent(ev);
+    if (code.nbytes == 0 || (code.nbytes == 1 && code.bytes[0] == 0xF0)) {
+        // unknown key
+        std::cerr << "Key not mapped: " << std::hex << ev->key() << std::endl;
+    } else {
+        for (int i = 0; i < code.nbytes; ++i) {
+            std::cout << std::hex << (int)code.bytes[i] << ' ';
+        }
+        std::cout << std::endl;
+    }
 }
