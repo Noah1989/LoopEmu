@@ -4,15 +4,15 @@ defattr	equ	67h
 	include	a:video.def
 
 ; device descriptor
-video	dw	ioerr ; read
-	dw	vwrite
-	dw	vseek
-	dw	ioerr ; getc
-	dw	ioerr ; putc
-	dw	ioerr ; control
-	dw	vinit ; init
-	dw	ioerr ; open
-	dw	ioerr ; close
+video	dw	ioerr	; read
+	dw	vwrite	; write
+	dw	vseek	; seek
+	dw	ioerr	; getc
+	dw	vputc	; putc
+	dw	ioerr	; control
+	dw	vinit	; init
+	dw	ioerr	; open
+	dw	ioerr	; close
 	dw	vdata
 
 vtable	equ	vdata+0 ; currently selected table (I/O address)
@@ -25,6 +25,10 @@ vwrite	xor	a,a
 	ld	c,a
 	ex	de,hl
 	otir
+	ret
+
+vputc	ld	bc,(vtable)
+	out	(c),a
 	ret
 
 vseek	ld	a,e

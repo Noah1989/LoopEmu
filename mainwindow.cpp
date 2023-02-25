@@ -8,6 +8,7 @@
 
 MainWindow::MainWindow(System *system, QWidget *parent)
     : QMainWindow(parent),
+      system(system),
       mdiArea(new QMdiArea),
       lowerMemoryView(new MemoryView(system->lowerMemory, 0x0000)),
       upperMemoryView(new MemoryView(system->upperMemory, 0x8000)),
@@ -26,7 +27,7 @@ MainWindow::MainWindow(System *system, QWidget *parent)
 
     QMdiSubWindow *vgaWindow = mdiArea->addSubWindow(vgaView);
     vgaWindow->setWindowTitle("VGA Output");
-        connect(vgaWindow, &QMdiSubWindow::windowStateChanged, [this, vgaWindow](Qt::WindowStates oldState, Qt::WindowStates newState){
+        connect(vgaWindow, &QMdiSubWindow::windowStateChanged, this, [this, vgaWindow](Qt::WindowStates oldState, Qt::WindowStates newState){
         if (newState & Qt::WindowMaximized) {
             vgaWindow->setWindowFlag(Qt::FramelessWindowHint);
             mdiArea->setMinimumSize(640,480);
@@ -68,8 +69,7 @@ void MainWindow::onKeyEvent(QKeyEvent *ev) {
         std::cerr << "Key not mapped: " << std::hex << ev->key() << std::endl;
     } else {
         for (int i = 0; i < code.nbytes; ++i) {
-            std::cout << std::hex << (int)code.bytes[i] << ' ';
+            system->sio.receive(Sio::Channel_A, code.bytes[i]);
         }
-        std::cout << std::endl;
     }
 }

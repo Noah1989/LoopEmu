@@ -22,6 +22,7 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
 
 private:
+    System *system;
     QMdiArea *mdiArea;
     MemoryView *lowerMemoryView;
     MemoryView *upperMemoryView;

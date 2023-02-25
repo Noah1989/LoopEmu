@@ -1,6 +1,7 @@
 charmap equ	5000h ;.. 6fffh character bitmap
-stack	equ	7fe0h ; stack below this address
-vdata	equ	7fe0h ; data for video device
+stack	equ	7fc0h ; stack below this address
+vdata	equ	7fd0h ; data for video device
+kdata	equ	7de0h ; data for keyboard device
 temp	equ	7ff0h ;.. 7ff7h scratch space
 timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
 
@@ -70,12 +71,19 @@ titleln	equ	$-title
 
 	include	a:device.inc
 	include	a:video.inc
+	include	a:keyboard.inc
 
 ; main entry point
 ; clear free memory
 init	ld	hl,last
 	ld	de,last+1
 	ld	bc,charmap-last-1
+	ld	(hl),0ffh
+	ldir
+	ld	hl,charmap+2000h
+	ld	de,charmap+2000h+1
+	ld	bc,timekpr-[charmap+2000h]-1
+	ld	(hl),0ffh
 	ldir
 	ld	hl,user
 	ld	de,user+1
@@ -92,6 +100,15 @@ init	ld	hl,last
 	ld	de,title
 	ld	bc,titleln
 	rst	dvwrite
+;initialize keyboard
+	ld	ix, kbd
+	call	dvinit
+
+test	ld	ix, kbd
+	rst	dvgetc
+	ld	ix, video
+	rst	dvputc
+	jr	test
 
 ;	call	user
 last	rst	error

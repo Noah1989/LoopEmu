@@ -13,7 +13,42 @@ Video::~Video()
 {
 }
 
-void Video::outPort(unsigned short port, unsigned char value)
+uint8_t Video::inPort(uint16_t port) {
+    uint8_t result = 0;
+    switch (port&0x0f) {
+    case 0x08:
+        result = nameMemory[vaddr];
+        break;
+    case 0x09:
+        result = attrMemory[vaddr];
+        break;
+    case 0x0a:
+        result = pattMemory[vaddr];
+        break;
+    case 0x0b:
+        result = paleMemory[vaddr];
+        break;
+    case 0x0c:
+        result = nameMemory[vaddr++];
+        vaddr &= 0x1fff;
+        break;
+    case 0x0d:
+        result = attrMemory[vaddr++];
+        vaddr &= 0x1fff;
+        break;
+    case 0x0e:
+        result = pattMemory[vaddr++];
+        vaddr &= 0x1fff;
+        break;
+    case 0x0f:
+        result = paleMemory[vaddr++];
+        vaddr &= 0x1fff;
+        break;
+    }
+    return result;
+}
+
+void Video::outPort(uint16_t port, uint8_t value)
 {
     switch (port&0x0f) {
     case 0x00:

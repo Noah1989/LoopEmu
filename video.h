@@ -19,7 +19,8 @@ public:
     uint8_t vscry;
     uint8_t vscrh;
 
-    void outPort(unsigned short port, unsigned char value);
+    uint8_t inPort(uint16_t port);
+    void outPort(uint16_t port, uint8_t value);
 
 };
 

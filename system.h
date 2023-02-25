@@ -36,10 +36,10 @@ public slots:
     void stop();
 
 private:    
-    static unsigned char readByte(void* arg, unsigned short addr);
-    static void writeByte(void* arg, unsigned short addr, unsigned char value);
-    static unsigned char inPort(void* arg, unsigned short port);
-    static void outPort(void* arg, unsigned short port, unsigned char value);
+    static uint8_t readByte(void* arg, uint16_t addr);
+    static void writeByte(void* arg, uint16_t addr, uint8_t value);
+    static uint8_t inPort(void* arg, uint16_t port);
+    static void outPort(void* arg, uint16_t port, uint8_t value);
     QThread *thread;
     QTimer *timer;
 

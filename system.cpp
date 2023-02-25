@@ -49,7 +49,7 @@ void System::load(const std::string &hexFileName)
     }
 }
 
-unsigned char System::readByte(void *arg, unsigned short addr)
+uint8_t System::readByte(void *arg, uint16_t addr)
 {
     System *self = static_cast<System*>(arg);
     if (addr < 0x8000) {
@@ -59,7 +59,7 @@ unsigned char System::readByte(void *arg, unsigned short addr)
     }
 }
 
-void System::writeByte(void *arg, unsigned short addr, unsigned char value)
+void System::writeByte(void *arg, uint16_t addr, uint8_t value)
 {
     System *self = static_cast<System*>(arg);
     if (addr < 0x8000) {
@@ -69,18 +69,28 @@ void System::writeByte(void *arg, unsigned short addr, unsigned char value)
     }
 }
 
-unsigned char System::inPort(void *arg, unsigned short port)
+uint8_t System::inPort(void *arg, uint16_t port)
 {
     System *self = static_cast<System*>(arg);
-    return 0;
+    switch (port&0xf0) {
+    case 0xb0:
+        return self->video.inPort(port);
+    case 0xc0:
+        return self->sio.inPort(port);
+    default:
+        return 0;
+    }
 }
 
-void System::outPort(void *arg, unsigned short port, unsigned char value)
+void System::outPort(void *arg, uint16_t port, uint8_t value)
 {
     System *self = static_cast<System*>(arg);
     switch (port&0xf0) {
     case 0xb0:        
         self->video.outPort(port, value);
+        break;
+    case 0xc0:
+        self->sio.outPort(port, value);
         break;
     }
 }
