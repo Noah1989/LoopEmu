@@ -8,15 +8,12 @@ System::System(QObject *parent)
       lowerMemory(0x8000),
       upperMemory(0x8000),
       cpu(this), mhz(9.830400), fps(60.0),
+      video(this), sio(this),
       thread(new QThread(this)),
       timer(nullptr)
 {    
     std::generate(lowerMemory.begin(), lowerMemory.end(), std::rand);
     std::generate(upperMemory.begin(), upperMemory.end(), std::rand);
-    std::generate(nameMemory.begin(), nameMemory.end(), std::rand);
-    std::generate(attrMemory.begin(), attrMemory.end(), std::rand);
-    std::generate(pattMemory.begin(), pattMemory.end(), std::rand);
-    std::generate(paleMemory.begin(), paleMemory.end(), std::rand);
 
     load("disk/bios.hex");
     load("disk/charmap.hex");
@@ -81,53 +78,9 @@ unsigned char System::inPort(void *arg, unsigned short port)
 void System::outPort(void *arg, unsigned short port, unsigned char value)
 {
     System *self = static_cast<System*>(arg);
-    switch (port&0xff) {
-    case 0xb0:
-        self->vscrx = value;
-        break;
-    case 0xb1:
-        self->vscry = value;
-        break;
-    case 0xb2:
-        self->vscrh = value;
-        break;
-    case 0xb3:
-        self->vaddr &= 0xff00;
-        self->vaddr |= value;
-        self->vaddr &= 0x1fff;
-        break;
-    case 0xb4:
-        self->vaddr &= 0xff;
-        self->vaddr |= value<<8;
-        self->vaddr &= 0x1fff;
-        break;
-    case 0xb8:
-        self->nameMemory[self->vaddr] = value;
-        break;
-    case 0xb9:
-        self->attrMemory[self->vaddr] = value;
-        break;
-    case 0xba:
-        self->pattMemory[self->vaddr] = value;
-        break;
-    case 0xbb:
-        self->paleMemory[self->vaddr] = value;
-        break;
-    case 0xbc:
-        self->nameMemory[self->vaddr++] = value;
-        self->vaddr &= 0x1fff;
-        break;
-    case 0xbd:
-        self->attrMemory[self->vaddr++] = value;
-        self->vaddr &= 0x1fff;
-        break;
-    case 0xbe:
-        self->pattMemory[self->vaddr++] = value;
-        self->vaddr &= 0x1fff;
-        break;
-    case 0xbf:
-        self->paleMemory[self->vaddr++] = value;
-        self->vaddr &= 0x1fff;
+    switch (port&0xf0) {
+    case 0xb0:        
+        self->video.outPort(port, value);
         break;
     }
 }
@@ -156,8 +109,4 @@ void System::stop()
         timer->stop();
     }
     emit stopped();
-}
-
-void System::serialIn(uint8_t c) {
-    emit serialOut(c);
 }

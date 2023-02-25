@@ -12,9 +12,9 @@ MainWindow::MainWindow(System *system, QWidget *parent)
       lowerMemoryView(new MemoryView(system->lowerMemory, 0x0000)),
       upperMemoryView(new MemoryView(system->upperMemory, 0x8000)),
       cpuView(new CpuView(system->cpu)),
-      vgaView(new VgaView(system->nameMemory, system->attrMemory,
-                          system->pattMemory, system->paleMemory,
-                          system->vscrx, system->vscry, system->vscrh))
+      vgaView(new VgaView(system->video.nameMemory, system->video.attrMemory,
+                          system->video.pattMemory, system->video.paleMemory,
+                          system->video.vscrx, system->video.vscry, system->video.vscrh))
 {
     mdiArea->setOption(QMdiArea::DontMaximizeSubWindowOnActivation);
     setCentralWidget(mdiArea);
