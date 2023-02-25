@@ -1,11 +1,14 @@
 charmap equ	5000h ;.. 6fffh character bitmap
-stack	equ	7fc0h ; stack below this address
-vdata	equ	7fd0h ; data for video device
-kdata	equ	7de0h ; data for keyboard device
+stack	equ	7fb0h ; stack below this address
+vdata	equ	7fc0h ; data for video device
+kdata	equ	7dd0h ; data for keyboard device
+cdata	equ	7de0h ; data for console device
 temp	equ	7ff0h ;.. 7ff7h scratch space
 timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
 
 user	equ	8000h ; user code area
+
+	list	on
 
 ; boot code
 	org	0
@@ -72,6 +75,7 @@ titleln	equ	$-title
 	include	a:device.inc
 	include	a:video.inc
 	include	a:keyboard.inc
+	include	a:console.inc
 
 ; main entry point
 ; clear free memory
@@ -95,20 +99,23 @@ init	ld	hl,last
 	call	dvinit
 ; welcome message
 	ld	ix,video
-	ld	de, 0
+	ld	de,0
 	rst	dvseek
 	ld	de,title
 	ld	bc,titleln
 	rst	dvwrite
-;initialize keyboard
-	ld	ix, kbd
+; initialize keyboard
+	ld	ix,keybrd
+	call	dvinit
+; initialize console
+	ld	ix,console
 	call	dvinit
 
-test	ld	ix, kbd
-	rst	dvgetc
-	ld	ix, video
+	ld	ix,console
+test	rst	dvgetc
 	rst	dvputc
 	jr	test
 
 ;	call	user
 last	rst	error
+

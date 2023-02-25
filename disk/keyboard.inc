@@ -1,5 +1,5 @@
 ; device descriptor
-kbd	dw	ioerr	; read
+keybrd	dw	ioerr	; read
 	dw	ioerr	; write
 	dw	ioerr	; seek
 	dw	kgetc	; getc

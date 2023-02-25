@@ -15,19 +15,20 @@ video	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	vdata
 
-vtable	equ	vdata+0 ; currently selected table (I/O address)
+; data block indices
+vtable	equ	0 ; currently selected table (I/O address)
 
 vwrite	xor	a,a
 	cp	a,b
 	call	nz,error ; TODO: support larger writes
 	ld	b,c
-	ld	a,(vtable)
+	ld	a,(vdata+vtable)
 	ld	c,a
 	ex	de,hl
 	otir
 	ret
 
-vputc	ld	bc,(vtable)
+vputc	ld	bc,(vdata+vtable)
 	out	(c),a
 	ret
 
@@ -99,7 +100,7 @@ vinit3	ld	a,defattr
 	jr	nz,vinit3
 ; initialize data block
 	ld	hl,vname+vincr
-	ld	(vtable),hl
+	ld	(vdata+vtable),hl
 	ret
 
 ; load palettes from 24 colors pointed to by hl:
