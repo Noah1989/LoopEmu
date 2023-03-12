@@ -1,21 +1,24 @@
-; device descriptor
-console	dw	ioerr	; read
-	dw	ioerr	; write
-	dw	ioerr	; seek
-	dw	cgetc	; getc
-	dw	cputc	; putc
-	dw	ioerr	; control
-	dw	cinit	; init
-	dw	ioerr	; open
-	dw	ioerr	; close
-	dw	cdata
+; data block indices
+cmodif	equ	0 ; console keyboard modifiers
 
-cinit	ret
+; modifier bits
+cmshift	equ	001b
+cmctrl	equ	010b
+cmalt	equ	100b
 
-cgetc	push	ix
-	ld	ix,keybrd
-	rst	dvgetc
-	pop	ix
+; data block indices
+ckeybrd	equ	0 ; keyboard device attached to the console
+cvideo	equ	2 ; video device attached to the console
+
+cinit	call	dvdatiy
+	ld	(iy+ckeybrd),e
+	ld	(iy+ckeybrd+1),d
+	ld	(iy+cvideo),c
+	ld	(iy+cvideo+1),b
+	ret
+
+cgetc	call	dvdatiy
+cgetc0	call	cgetkey
 	cp	a,0e0h
 	jr	z,cgetc
 	cp	a,0f0h
@@ -26,14 +29,30 @@ cgetc1	ld	h,0
 	add	hl,bc
 	ld	a,(hl)
 	ret
-ckeyup	push	ix
-	ld	ix,keybrd
+ckeyup	call	cgetkey ; discard byte
+	jr	cgetc0
+
+cgetkey	push	ix
+	ld	a,(iy+ckeybrd)
+	db	0ddh ; use ixl instead of l
+	ld	l,a
+	ld	a,(iy+ckeybrd+1)
+	db	0ddh ; use ixh instead of h
+	ld	h,a
 	rst	dvgetc
 	pop	ix
-	jr	cgetc
+	ret
 
-cputc	push	ix
-	ld	ix,video
+cputc	ld	c,a
+	call	dvdatiy
+	push	ix
+	ld	a,(iy+cvideo)
+	db	0ddh ; use ixl instead of l
+	ld	l,a
+	ld	a,(iy+cvideo+1)
+	db	0ddh ; use ixh instead of h
+	ld	h,a
+	ld	a,c
 	rst	dvputc
 	pop	ix
 	ret

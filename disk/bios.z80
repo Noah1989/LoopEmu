@@ -1,8 +1,6 @@
-charmap equ	5000h ;.. 6fffh character bitmap
-stack	equ	7fb0h ; stack below this address
-vdata	equ	7fc0h ; data for video device
-kdata	equ	7dd0h ; data for keyboard device
-cdata	equ	7de0h ; data for console device
+charmap	equ	5000h ;.. 6fffh character bitmap
+stack	equ	7f00h ; stack below this address
+dvspace	equ	7f00h ;.. 7fefh device data space
 temp	equ	7ff0h ;.. 7ff7h scratch space
 timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
 
@@ -76,6 +74,7 @@ titleln	equ	$-title
 	include	a:video.inc
 	include	a:keyboard.inc
 	include	a:console.inc
+	include	a:system.inc
 
 ; main entry point
 ; clear free memory
@@ -96,6 +95,7 @@ init	ld	hl,last
 	ldir
 ; initialize video
 	ld	ix,video
+	ld	b,0b0h
 	call	dvinit
 ; welcome message
 	ld	ix,video
@@ -109,6 +109,8 @@ init	ld	hl,last
 	call	dvinit
 ; initialize console
 	ld	ix,console
+	ld	de,keybrd
+	ld	bc,video
 	call	dvinit
 
 	ld	ix,console

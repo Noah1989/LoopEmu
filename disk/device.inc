@@ -9,6 +9,14 @@ dvopen	equ	virt7
 dvclose	equ	virt8
 dvdata	equ	2 * 9
 
+dvdatiy	ld	a,(ix+dvdata)
+	db	0fdh ; use iyl instead of l
+	ld	l,a
+	ld	a,(ix+dvdata+1)
+	db	0fdh ; use iyh instead of h
+	ld	h,a
+	ret
+
 ionull	xor	a,a
 	ret
 ioerr	rst	error

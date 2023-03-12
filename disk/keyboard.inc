@@ -1,15 +1,3 @@
-; device descriptor
-keybrd	dw	ioerr	; read
-	dw	ioerr	; write
-	dw	ioerr	; seek
-	dw	kgetc	; getc
-	dw	ioerr	; putc
-	dw	ioerr	; control
-	dw	kinit	; init
-	dw	ioerr	; open
-	dw	ioerr	; close
-	dw	kdata
-
 kinit	ret
 
 kgetc	in	a,(0c2h)

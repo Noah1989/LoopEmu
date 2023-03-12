@@ -3,65 +3,82 @@ defattr	equ	67h
 
 	include	a:video.def
 
-; device descriptor
-video	dw	ioerr	; read
-	dw	vwrite	; write
-	dw	vseek	; seek
-	dw	ioerr	; getc
-	dw	vputc	; putc
-	dw	ioerr	; control
-	dw	vinit	; init
-	dw	ioerr	; open
-	dw	ioerr	; close
-	dw	vdata
-
 ; data block indices
-vtable	equ	0 ; currently selected table (I/O address)
+vbase	equ	0 ; base I/O address
+vtable	equ	1 ; currently selected table (I/O address)
 
 vwrite	xor	a,a
 	cp	a,b
 	call	nz,error ; TODO: support larger writes
 	ld	b,c
-	ld	a,(vdata+vtable)
-	ld	c,a
+	call	dvdatiy
+	ld	c,(iy+vtable)
 	ex	de,hl
 	otir
 	ret
 
-vputc	ld	bc,(vdata+vtable)
-	out	(c),a
+vputc	ld	b,a
+	call	dvdatiy
+	ld	c,(iy+vtable)
+	out	(c),b
 	ret
 
-vseek	ld	a,e
-	out	(vadrl),a
-	ld	a,d
-	out	(vadrh),a
+vseek	call	dvdatiy
+	ld	a,(iy+vbase)
+	add	a,vadrl
+	ld	c,a
+	out	(c),e
+	inc	c;vadrh
+	out	(c),d
 	ret
 
+
+vinit
+; initialize data block
+	call	dvdatiy
+	ld	(iy+vbase),b
+	ld	a,b
+	add	a,vname+vincr
+	ld	(iy+vtable),a
 ; set video parameters
-vinit	ld	a,-3
-	out	(vscrx),a
+	ld	a,b
+	add	a,vscrx
+	ld	c,a
+	ld	a,-3
+	out	(c),a
 	ld	a,-4
-	out	(vscry),a
+	inc	c;vscry
+	out	(c),a
 	ld	a,10110011b
-	out	(vscrh),a
+	inc	c;vscrh
+	out	(c),a
 ; load character map
+	ld	a,b
+	add	a,vadrl
+	ld	c,a
 	xor	a,a
-	out	(vadrl),a
-	out	(vadrh),a
-	ld	ix,charmap
+	out	(c),a
+	inc	c ; vadrh
+	out	(c),a
+	exx	; alternate
+	ld	a,(iy+vbase)
+	add	a,vpatt+vincr
+	ld	c,a
+	exx	; normal
+	push	iy
+	ld	iy,charmap
 	ld	c, 0
 vinit0	exx	; alternate
 	ld	b,4
-vinit1	ld	d,(ix+2)
-	ld	e,(ix+3)
-	ld	h,(ix+18)
-	ld	l,(ix+19)
+vinit1	ld	d,(iy+2)
+	ld	e,(iy+3)
+	ld	h,(iy+18)
+	ld	l,(iy+19)
 	exx	; normal
-	ld	d,(ix+0)
-	ld	e,(ix+1)
-	ld	h,(ix+16)
-	ld	l,(ix+17)
+	ld	d,(iy+0)
+	ld	e,(iy+1)
+	ld	h,(iy+16)
+	ld	l,(iy+17)
 	ld	b,8
 vinit2	ld	a,80h ; falls into carry after 8 rotations
 vinit21	rl	d
@@ -74,33 +91,39 @@ vinit21	rl	d
 	rra
 	exx	; always executed twice
 	jr	nc,vinit21
-	out	(vpatt+vincr),a
+	exx	; alternate
+	out	(c),a
+	exx	; normal
 	djnz	vinit2
 	ld	de,4
-	add	ix,de
+	add	iy,de
 	exx	; alternate
 	djnz	vinit1
 	exx	; normal
 	ld	de,16
-	add	ix,de
+	add	iy,de
 	inc	c
 	jr	nz,vinit0
+	pop	iy
 ; load palettes
 	ld	hl,pdark+theme*24
 	call	loadpal
 ; clear name and attribute tables
-	ld	bc,2000h
-vinit3	ld	a,defattr
-	out	(vattr),a
-	ld	a,' '
-	out	(vname+vincr),a
-	dec	bc
-	ld	a,b
-	or	a,c
-	jr	nz,vinit3
-; initialize data block
-	ld	hl,vname+vincr
-	ld	(vdata+vtable),hl
+	ld	a,(iy+vbase)
+	add	a,vname+vincr
+	ld	c,a
+	ld	b,' '
+	call	vinit3
+	ld	a,(iy+vbase)
+	add	a,vattr+vincr
+	ld	c,a
+	ld	b,defattr
+vinit3	ld	de,2000h
+vinit4	out	(c),b
+	dec	de
+	ld	a,e
+	or	a,d
+	jr	nz,vinit4
 	ret
 
 ; load palettes from 24 colors pointed to by hl:
@@ -108,50 +131,65 @@ vinit3	ld	a,defattr
 ; 8 regular forground colors
 ; 8 high contrast foreground colors
 ; intended for use with a 2-font 8x16 character map
-loadpal	xor	a,a
-	ld	d, h
-	ld	e, l
+loadpal	ld	d,h
+	ld	e,l
 	ld	hl,8
 	add	hl,de
-	out	(vadrl),a
-	out	(vadrh),a
-	ld	ix,temp
-	ld	(ix+0),8 ; pattern bit count
-	ld	(ix+1),1 ; pattern bit width
-	ld	(ix+2),4 ; palette sets
-loadp0	ld	(ix+3),8 ; background colors
-loadp1	ld	(ix+4),16; foreground colors
+	ld	a,(iy+vbase)
+	add	a,vadrl
+	ld	c,a
+	xor	a,a
+	out	(c),a
+	inc	c;vadrh
+	out	(c),a
+	exx
+	ld	a,(iy+vbase)
+	add	a,vpale+vincr
+	ld	c,a
+	exx
+	push	iy
+	ld	iy,temp
+	ld	(iy+0),8 ; pattern bit count
+	ld	(iy+1),1 ; pattern bit width
+	ld	(iy+2),4 ; palette sets
+loadp0	ld	(iy+3),8 ; background colors
+loadp1	ld	(iy+4),16; foreground colors
 ; output a single palette
-loadp2	ld	c,(ix+0)
+loadp2	ld	c,(iy+0)
 loadp3	ld	a,(de)
-	ld	b,(ix+1)
-loadp4	out	(vpale+vincr),a
+	ld	b,(iy+1)
+loadp4	exx
+	out	(c),a
+	exx
 	djnz	loadp4
 	ld	a,(hl)
-	ld	b,(ix+1)
-loadp5	out	(vpale+vincr),a
+	ld	b,(iy+1)
+loadp5	exx
+	out	(c),a
+	exx
 	djnz	loadp5
 	dec	c
 	jr	nz,loadp3
 ; next foreground color
 	inc	hl
-	dec	(ix+4)
+	dec	(iy+4)
 	jr	nz,loadp2
 ; next background color
 	ld	bc,-16
 	add	hl,bc
 	inc	de
-	dec	(ix+3)
+	dec	(iy+3)
 	jr	nz,loadp1
 ; next palette set
 	ex	de,hl
 	ld	bc,-8
 	add	hl,bc
 	ex	de,hl
-	srl	(ix+0)
-	sla	(ix+1)
-	dec	(ix+2)
+	srl	(iy+0)
+	sla	(iy+1)
+	dec	(iy+2)
 	jr	nz,loadp0
+	pop	iy
 	ret
 
 ; default palettes
