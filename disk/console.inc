@@ -1,35 +1,68 @@
 ; data block indices
-cmodif	equ	0 ; console keyboard modifiers
-
-; modifier bits
-cmshift	equ	001b
-cmctrl	equ	010b
-cmalt	equ	100b
-
-; data block indices
 ckeybrd	equ	0 ; keyboard device attached to the console
 cvideo	equ	2 ; video device attached to the console
+cmodif	equ	4 ; console keyboard modifiers
+
+; modifier bitmasks
+cmshftl	equ	001b
+cmshftr	equ	010b
+cmshift	equ	011b
 
 cinit	call	dvdatiy
 	ld	(iy+ckeybrd),e
 	ld	(iy+ckeybrd+1),d
 	ld	(iy+cvideo),c
 	ld	(iy+cvideo+1),b
+	ld	(iy+cmodif),0
 	ret
 
 cgetc	call	cgetkey
+; special key prefix (ignored)
 	cp	a,0e0h
 	jr	z,cgetc
+; key release prefix
 	cp	a,0f0h
 	jr	z,ckeyup
-cgetc1	ld	h,0
+; modifier keys
+	ld	c,0
+	call	cmod
+	jr	z,cgetc
+; normal keys
+	ld	h,0
 	ld	l,a
 	ld	bc,ckeys
 	add	hl,bc
-	ld	a,(hl)
+	call	dvdatiy
+	ld	a,(iy+cmodif)
+	and	a,cmshift
+	jr	z,cgetc1
+	ld	bc,128
+	add	hl,bc
+cgetc1	ld	a,(hl)
 	ret
-ckeyup	call	cgetkey ; discard byte
+ckeyup	call	cgetkey
+; modifier release
+	ld	c,0ffh
+	call	cmod
 	jr	cgetc
+
+cmod	ld	b,cmshftl
+	cp	a,12h
+	jr	z,cmod1
+	ld	b,cmshftr
+	cp	a,59h
+	jr	z,cmod1
+	ret	; z cleared
+cmod1	call	dvdatiy
+	ld	a,c
+	and	a,b
+	ld	c,a
+	ld	a,(iy+cmodif)
+	or	a,b
+	xor	a,c
+	ld	(iy+cmodif),a
+	xor	a,a
+	ret	; z set
 
 cgetkey	call	dvdatiy
 	push	ix
