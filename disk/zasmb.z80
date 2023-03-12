@@ -2985,6 +2985,10 @@ ioops	ld	a,(opcode)
 	cp	a,'('
 	call	nz,serror
 	call	xprshn		;in a,(		(need length check)
+	ld	hl,78EDH	;check for in a,(c)
+	ld	a,(regflg)
+	or	a,a
+	jr	nz,iops11
 	ld	a,(xprval)
 	ld	h,a
 	ld	l,0DBH
@@ -3005,7 +3009,7 @@ iops1	rlca			;in r
 	call	nz,serror
 	call	xprshn		;in r,(
 	ld	a,(regflg)
-	cp	a,creg
+iops11	cp	a,creg
 	call	nz,serror
 	call	clspar		;in r,(c
 	jp	end2		;in r,(c)
