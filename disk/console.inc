@@ -17,8 +17,7 @@ cinit	call	dvdatiy
 	ld	(iy+cvideo+1),b
 	ret
 
-cgetc	call	dvdatiy
-cgetc0	call	cgetkey
+cgetc	call	cgetkey
 	cp	a,0e0h
 	jr	z,cgetc
 	cp	a,0f0h
@@ -30,9 +29,10 @@ cgetc1	ld	h,0
 	ld	a,(hl)
 	ret
 ckeyup	call	cgetkey ; discard byte
-	jr	cgetc0
+	jr	cgetc
 
-cgetkey	push	ix
+cgetkey	call	dvdatiy
+	push	ix
 	ld	a,(iy+ckeybrd)
 	db	0ddh ; use ixl instead of l
 	ld	l,a

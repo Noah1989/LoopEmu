@@ -1,8 +1,20 @@
-kinit	ret
+; data block indices
+kbase	equ	0 ; base I/O address
 
-kgetc	in	a,(0c2h)
+; initialize data block
+kinit	call	dvdatiy
+	ld	(iy+kbase),b
+	ret
+
+kgetc	call	dvdatiy
+	ld	c,(iy+kbase)
+	inc	c
+	inc	c
+kgetc1	in	a,(c)
 	and	a,00000001b
-	jr	z,kgetc
-	in	a,(0c0h)
+	jr	z,kgetc1
+	dec	c
+	dec	c
+	in	a,(c)
 	ret
 

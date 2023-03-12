@@ -106,6 +106,7 @@ init	ld	hl,last
 	rst	dvwrite
 ; initialize keyboard
 	ld	ix,keybrd
+	ld	b,0c0h
 	call	dvinit
 ; initialize console
 	ld	ix,console

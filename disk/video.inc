@@ -32,10 +32,8 @@ vseek	call	dvdatiy
 	out	(c),d
 	ret
 
-
-vinit
 ; initialize data block
-	call	dvdatiy
+vinit	call	dvdatiy
 	ld	(iy+vbase),b
 	ld	a,b
 	add	a,vname+vincr
