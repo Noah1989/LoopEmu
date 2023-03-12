@@ -76,7 +76,7 @@ void Sio::receive(Sio::Channel ch, uint8_t byte)
     std::queue<uint8_t> *f = fifo(ch);
     if (f->size() >= 3) {
         std::cerr << "SIO channel " << (char)('A'+ch) << ": FIFO is full" << std::endl;
-        return; // full
+        // return; // full
     }
     f->push(byte);
 }
