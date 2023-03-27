@@ -4,7 +4,7 @@ video	dw	ioerr	; read
 	dw	vseek	; seek
 	dw	ioerr	; getc
 	dw	vputc	; putc
-	dw	ioerr	; control
+	dw	vctrl	; control
 	dw	vinit	; init
 	dw	ioerr	; open
 	dw	ioerr	; close
@@ -21,8 +21,8 @@ keybrd	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 10h
 
-console	dw	ioerr	; read
-	dw	ioerr	; write
+console	dw	cread	; read
+	dw	cwrite	; write
 	dw	ioerr	; seek
 	dw	cgetc	; getc
 	dw	cputc	; putc

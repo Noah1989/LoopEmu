@@ -7,6 +7,17 @@ defattr	equ	67h
 vbase	equ	0 ; base I/O address
 vtable	equ	1 ; currently selected table (I/O address)
 
+vctrl	cp	a,vname
+	call	c,ioerr
+	cp	a,vpale+vincr+1
+	call	nc,ioerr
+	ld	b,a
+	call	dvdatiy
+	ld	a,b
+	add	a,(iy+vbase)
+	ld	(iy+vtable),a
+	ret
+
 vwrite	xor	a,a
 	cp	a,b
 	call	nz,error ; TODO: support larger writes

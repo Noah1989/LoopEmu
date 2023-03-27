@@ -1,7 +1,12 @@
 ; data block indices
-ckeybrd	equ	0 ; keyboard device attached to the console
-cvideo	equ	2 ; video device attached to the console
-cmodif	equ	4 ; console keyboard modifiers
+ckeybrd	equ	0;..1	keyboard device attached to the console
+cvideo	equ	2;..3	video device attached to the console
+cmodif	equ	4;	console keyboard modifiers
+ctxta	equ	5;	text attribute
+ccura	equ	6;	cursor attribute
+cposx	equ	7;	cursor column
+cposy	equ	8;	cursor row
+
 
 ; modifier bitmasks
 cmshftl	equ	001b
@@ -14,7 +19,15 @@ cinit	call	dvdatiy
 	ld	(iy+cvideo),c
 	ld	(iy+cvideo+1),b
 	ld	(iy+cmodif),0
+	ld	(iy+ctxta),defattr
+	ld	(iy+ccura),defattr~70h
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
+	xor	a,a
+	rst	dvputc
 	ret
+
+cread	equ	dvgetcr
 
 cgetc	call	cgetkey
 ; special key prefix (ignored)
@@ -76,16 +89,70 @@ cgetkey	call	dvdatiy
 	pop	ix
 	ret
 
-cputc	ld	c,a
+cwrite	equ	dvputcr
+
+cputc	ld	b,a
 	call	dvdatiy
 	push	ix
+	push	bc
 	ld	a,(iy+cvideo)
 	db	0ddh ; use ixl instead of l
 	ld	l,a
 	ld	a,(iy+cvideo+1)
 	db	0ddh ; use ixh instead of h
 	ld	h,a
-	ld	a,c
+;ix points to video device now
+	ld	e,(iy+cposx)
+	ld	d,(iy+cposy)
+	push	iy
+	rst	dvseek
+; remove cursor
+	ld	a,vattr
+	rst	dvcntl
+	pop	iy
+	ld	a,(iy+ctxta)
+	push	iy
+	rst	dvputc
+	pop	iy
+; control characters
+	pop	af ; previously bc
+	cp	a,20h
+	jr	nc,cputc1
+	cp	a,10 ; line feed
+	jr	nz,cputc0a
+	inc	(iy+cposy)
+	jr	cputc2
+cputc0a	cp	a,13 ; carriage return
+	jr	nz,cputc2
+	ld	(iy+cposx),0
+	jr	cputc2
+; put character
+cputc1	push	af
+	ld	a,vname
+	push	iy
+	rst	dvcntl
+	pop	iy
+	pop	af
+	push	iy
+	rst	dvputc
+; new cursor position
+	pop	iy
+	ld	a,(iy+cposx)
+	inc	a
+	cp	a,80
+	jr	c,cputc11
+	xor	a,a
+	inc	(iy+cposy)
+cputc11	ld	(iy+cposx),a
+; draw cursor
+cputc2	ld	e,(iy+cposx)
+	ld	d,(iy+cposy)
+	push	iy
+	rst	dvseek
+	ld	a,vattr
+	rst	dvcntl
+	pop	iy
+	ld	a,(iy+ccura)
 	rst	dvputc
 	pop	ix
 	ret

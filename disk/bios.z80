@@ -1,8 +1,8 @@
-charmap	equ	5000h ;.. 6fffh character bitmap
-stack	equ	7f00h ; stack below this address
-dvspace	equ	7f00h ;.. 7fefh device data space
-temp	equ	7ff0h ;.. 7ff7h scratch space
-timekpr	equ	7ff8h ;.. 7fffh real time clock / calendar
+charmap	equ	5000h;..6fffh	character bitmap
+stack	equ	7f00h;		stack below this address
+dvspace	equ	7f00h;..7fefh	device data space
+temp	equ	7ff0h;..7ff7h	scratch space
+timekpr	equ	7ff8h;..7fffh	real time clock / calendar
 
 user	equ	8000h ; user code area
 
@@ -66,8 +66,10 @@ virt8	ld	l,(ix+16)
 	org	66h
 	rst	error
 
+	org	80h
+
 ; title string near the beginning for easier rom identification
-title	db	'Loop Micro - Bootstrap Stage 1'
+title	db	'Loop Micro - Bootstrap Stage 1',13,10
 titleln	equ	$-title
 
 	include	a:device.inc
@@ -97,13 +99,6 @@ init	ld	hl,last
 	ld	ix,video
 	ld	b,0b0h
 	call	dvinit
-; welcome message
-	ld	ix,video
-	ld	de,0
-	rst	dvseek
-	ld	de,title
-	ld	bc,titleln
-	rst	dvwrite
 ; initialize keyboard
 	ld	ix,keybrd
 	ld	b,0c0h
@@ -114,7 +109,15 @@ init	ld	hl,last
 	ld	bc,video
 	call	dvinit
 
-	ld	ix,console
+term	equ	console
+
+; welcome message
+	ld	ix,term
+	ld	de,title
+	ld	bc,titleln
+	rst	dvwrite
+
+	ld	ix,term
 test	rst	dvgetc
 	rst	dvputc
 	jr	test
