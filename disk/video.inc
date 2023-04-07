@@ -1,7 +1,15 @@
-theme	equ	1
-defattr	equ	67h
+theme	equ	0
+defattr	equ	1eh
 
 	include	a:video.def
+
+; timing values (see silkscreen on card)
+vtiming	db	0d9h,039h
+	db	0d4h,074h
+	db	0f6h,07eh
+	db	0e4h,0e2h
+	db	0e1h,0f4h
+	db	090h
 
 ; data block indices
 vbase	equ	0 ; base I/O address
@@ -49,8 +57,17 @@ vinit	call	dvdatiy
 	ld	a,b
 	add	a,vname+vincr
 	ld	(iy+vtable),a
+; set timings
+	ld	c,(iy+vbase)
+	ld	hl,vtiming
+	ld	b,11
+vinit00	ld	a,(hl)
+	inc	hl
+	out	(c),a
+	inc	c
+	djnz	vinit00
 ; set video parameters
-	ld	a,b
+	ld	a,(iy+vbase)
 	add	a,vscrx
 	ld	c,a
 	ld	a,-3

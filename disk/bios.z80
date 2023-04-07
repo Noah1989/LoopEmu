@@ -48,8 +48,36 @@ virt5	ld	l,(ix+10)
 ; rst 38h (opcode ff) -> error handler
 	org	38h
 error	di
-	halt
-	jr	error
+	call	errst
+	call	errst
+errloop	halt
+	jr	errloop
+errst	ld	a,20h
+	out	(0bch),a
+	pop	hl
+	ex	(sp),hl
+	ld	a,h
+	call	errhex
+	ld	a,l
+errhex	ld	b,a
+	rrca
+	rrca
+	rrca
+	rrca
+	call	errnib
+	ld	a,b
+errnib	and	a,0fh
+	add	a,90h
+	daa
+	adc	a,40h
+	daa
+	out	(0bch),a
+	ret
+
+; non-maskable interrupt
+	org	66h
+	rst	error
+	retn
 
 ; more virtual method calls
 virt6	ld	l,(ix+12)
@@ -62,20 +90,18 @@ virt8	ld	l,(ix+16)
 	ld	h,(ix+17)
 	jp	(hl)
 
-; non-maskable interrupt
-	org	66h
-	rst	error
-
 	org	80h
 
 ; title string near the beginning for easier rom identification
-title	db	'Loop Micro - Bootstrap Stage 1',13,10
+title	db	12,'Loop Micro - Bootstrap Stage 1',13,10
 titleln	equ	$-title
 
 	include	a:device.inc
 	include	a:video.inc
 	include	a:keyboard.inc
 	include	a:console.inc
+	include a:serial.inc
+	include a:multi.inc
 	include	a:system.inc
 
 ; main entry point
@@ -97,19 +123,28 @@ init	ld	hl,last
 	ldir
 ; initialize video
 	ld	ix,video
-	ld	b,0b0h
+	ld	b,0a0h
 	call	dvinit
 ; initialize keyboard
 	ld	ix,keybrd
 	ld	b,0c0h
+	call	dvinit
+; initialize serial
+	ld	ix,serial
+	ld	b,0c2h
 	call	dvinit
 ; initialize console
 	ld	ix,console
 	ld	de,keybrd
 	ld	bc,video
 	call	dvinit
+; initialize multi
+	ld	ix,multi
+	ld	de,console
+	ld	bc,serial
+	call	dvinit
 
-term	equ	console
+term	equ	multi
 
 ; welcome message
 	ld	ix,term

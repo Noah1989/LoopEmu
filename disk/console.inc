@@ -23,8 +23,6 @@ cinit	call	dvdatiy
 	ld	(iy+ccura),defattr~70h
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
-	xor	a,a
-	rst	dvputc
 	ret
 
 cread	equ	dvgetcr
@@ -108,7 +106,7 @@ cputc	ld	b,a
 	rst	dvseek
 ; remove cursor
 	ld	a,vattr
-	rst	dvcntl
+	rst	dvctrl
 	pop	iy
 	ld	a,(iy+ctxta)
 	push	iy
@@ -130,7 +128,7 @@ cputc0a	cp	a,13 ; carriage return
 cputc1	push	af
 	ld	a,vname
 	push	iy
-	rst	dvcntl
+	rst	dvctrl
 	pop	iy
 	pop	af
 	push	iy
@@ -150,7 +148,7 @@ cputc2	ld	e,(iy+cposx)
 	push	iy
 	rst	dvseek
 	ld	a,vattr
-	rst	dvcntl
+	rst	dvctrl
 	pop	iy
 	ld	a,(iy+ccura)
 	rst	dvputc
@@ -191,4 +189,16 @@ ckeys	db	000,000,000,000, 000,000,000,000	;00h..07h
 	db	000,000,000,000, 000,000,000,000	;70h..77h
 	db	000,000,000,000, 000,000,000,000	;78h..7fh
 
-
+cctrl	ld	b,a
+	call	dvdatiy
+	push	ix
+	ld	a,(iy+ckeybrd)
+	db	0ddh ; use ixl instead of l
+	ld	l,a
+	ld	a,(iy+ckeybrd+1)
+	db	0ddh ; use ixh instead of h
+	ld	h,a
+	ld	a,b
+	rst	dvctrl
+	pop	ix
+	ret
