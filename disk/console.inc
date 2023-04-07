@@ -20,7 +20,7 @@ cinit	call	dvdatiy
 	ld	(iy+cvideo+1),b
 	ld	(iy+cmodif),0
 	ld	(iy+ctxta),defattr
-	ld	(iy+ccura),defattr~70h
+	ld	(iy+ccura),[defattr*16&0f0h]|[defattr/16&0fh]
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
 	ret

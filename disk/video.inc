@@ -1,5 +1,4 @@
-theme	equ	0
-defattr	equ	1eh
+defattr	equ	07h
 
 	include	a:video.def
 
@@ -132,7 +131,7 @@ vinit21	rl	d
 	jr	nz,vinit0
 	pop	iy
 ; load palettes
-	ld	hl,pdark+theme*24
+	ld	hl,defpal
 	call	loadpal
 ; clear name and attribute tables
 	ld	a,(iy+vbase)
@@ -218,11 +217,7 @@ loadp5	exx
 	pop	iy
 	ret
 
-; default palettes
-pdark	db	000h,005h,011h,015h,041h,045h,051h,054h
-	db	002h,019h,020h,029h,081h,098h,0e0h,0fdh
-	db	0a8h,01ah,022h,02ah,0c2h,0ddh,0e2h,0feh
-plight	db	0ffh,0afh,0bbh,0bfh,0ebh,0efh,0fbh,0abh
-	db	0fch,00eh,023h,02bh,0c3h,0deh,0e3h,003h
-	db	057h,00dh,021h,028h,0c1h,0dch,0e1h,001h
-
+; default palette
+defpal	db	000h,008h,020h,028h,080h,088h,0a0h,0a8h
+	db	054h,00ah,022h,02ah,082h,08ah,0a2h,0aah
+	db	057h,05fh,077h,07fh,0d7h,0dfh,0f7h,0ffh
