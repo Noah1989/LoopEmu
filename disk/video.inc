@@ -13,26 +13,41 @@ vtiming	db	0d9h,039h
 ; data block indices
 vbase	equ	0 ; base I/O address
 vtable	equ	1 ; currently selected table (I/O address)
+vmodif	equ	2 ; saved state of the vscrh register
 
-vctrl	ld	e,a
+; scroll offsets to make tile 0 appear on the top left corner of the screen
+voffsx	equ	-3
+voffsy	equ	-4
+
+vctrl	ld	b,a
 	call	dvdatiy
-	ld	a,e
-	cp	a,vclear
-	jr	nz,vctrl1
-	ld	a,(iy+vbase)
-	add	a,vadrl;
+	ld	a,b
+	cp	a,vnewln
+	jr	nz,vctrl0a
+; clear line
+	ld	b,e
+	ld	h,d
+	ld	de,256
+	jr	vctrlc
+vctrl0a	cp	a,vclear
+	jr	nz,vctrl0b
+; clear screen
+	ld	b,e
+	ld	h,0
+	ld	de,8192
+vctrlc	ld	a,(iy+vbase)
+	add	a,vadrl
 	ld	c,a
 	xor	a,a
 	out	(c),a
 	inc	c;vadrh
-	out	(c),a
+	out	(c),h
 	ld	a,c
 	add	a,vattr-vadrh
 	ld	l,a
 	add	a,vname+vincr-vattr
 	ld	h,a
-	ld	de,8192
-vctrl0	ld	c,l
+vctrlc1	ld	c,l
 	out	(c),b
 	ld	c,h
 	ld	a,' '
@@ -40,8 +55,35 @@ vctrl0	ld	c,l
 	dec	de
 	ld	a,d
 	or	a,e
-	jr	nz,vctrl0
+	jr	nz,vctrlc1
 	ret
+vctrl0b	cp	a,vscry
+	jr	nz,vctrl0c
+; adjust y-scroll
+	ex	de,hl
+	ld	bc,voffsy
+	add	hl,bc
+	ld	a,(iy+vbase)
+	add	a,vscry
+	ld	c,a
+	out	(c),l
+	ld	a,c
+	add	a,vscrh-vscry
+	ld	c,a
+	ld	a,h
+	and	a,03h
+	rlca
+	rlca
+	rlca
+	rlca
+	ld	h,a
+	ld	a,(iy+vmodif)
+	and	a,0cfh
+	or	a,h
+	ld	(iy+vmodif),a
+	out	(c),a
+	ret
+vctrl0c
 vctrl1	cp	a,vname
 	call	c,ioerr
 	cp	a,vpale+vincr+1
@@ -94,12 +136,13 @@ vinit00	ld	a,(hl)
 	ld	a,(iy+vbase)
 	add	a,vscrx
 	ld	c,a
-	ld	a,-3
+	ld	a,voffsx
 	out	(c),a
-	ld	a,-4
+	ld	a,voffsy
 	inc	c;vscry
 	out	(c),a
 	ld	a,10110011b
+	ld	(iy+vmodif),a
 	inc	c;vscrh
 	out	(c),a
 ; load character map

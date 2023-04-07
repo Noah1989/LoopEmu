@@ -6,6 +6,7 @@ ctxta	equ	5;	text attribute
 ccura	equ	6;	cursor attribute
 cposx	equ	7;	cursor column
 cposy	equ	8;	cursor row
+cscroll	equ	9;	scroll lines
 
 
 ; modifier bitmasks
@@ -23,6 +24,7 @@ cinit	call	dvdatiy
 	ld	(iy+ccura),[defattr*16&0f0h]|[defattr/16&0fh]
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
+	ld	(iy+cscroll),0
 	ret
 
 cread	equ	dvgetcr
@@ -113,8 +115,7 @@ cputc0	push	ix
 	db	0ddh ; use ixh instead of h
 	ld	h,a
 ;ix points to video device now
-	ld	e,(iy+cposx)
-	ld	d,(iy+cposy)
+	call	cposde
 	push	iy
 	rst	dvseek
 ; remove cursor
@@ -143,7 +144,7 @@ cputc0b	cp	a,8 ; backspace
 	jr	cputc2
 cputc0c cp	a,12 ; form feed (clear screen)
 	jr	nz,cputc0d
-	ld	b,(iy+ctxta)
+	ld	e,(iy+ctxta)
 	ld	a,vclear
 	push	iy
 	call	dvctrl
@@ -151,7 +152,16 @@ cputc0c cp	a,12 ; form feed (clear screen)
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
 	jr	cputc2
-cputc0d
+cputc0d	cp	a,9 ; tab
+	jr	nz,cputc0e
+	ld	a,(iy+cposx)
+	add	a,8
+	and	a,0f8h
+	cp	a,80
+	adc	a,-1
+	ld	(iy+cposx),a
+	jr	cputc2
+cputc0e
 ; put character
 cputc1	push	af
 	ld	a,vname
@@ -170,9 +180,38 @@ cputc1	push	af
 	xor	a,a
 	inc	(iy+cposy)
 cputc11	ld	(iy+cposx),a
+; scroll adjust
+cputc2	ld	a,(iy+cposy)
+	cp	a,30
+	jr	nz,cputc3
+	dec	(iy+cposy)
+	ld	a,(iy+cscroll)
+	inc	a
+	and	a,3fh
+	ld	(iy+cscroll),a
+	ld	l,a
+	ld	h,0
+	ld	l,a
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	ex	de,hl
+	ld	a,vscry
+	push	iy
+	rst	dvctrl
+	pop	iy
+	ld	a,(iy+cscroll)
+	add	a,(iy+cposy)
+	and	a,1fh
+	ld	d,a
+	ld	e,(iy+ctxta)
+	push	iy
+	ld	a,vnewln
+	rst	dvctrl
+	pop	iy
 ; draw cursor
-cputc2	ld	e,(iy+cposx)
-	ld	d,(iy+cposy)
+cputc3	call	cposde
 	push	iy
 	rst	dvseek
 	ld	a,vattr
@@ -190,6 +229,19 @@ cbacksp	dec	(iy+cposx)
 	ret	p
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
+	ret
+
+cposde	ld	a,(iy+cscroll)
+	add	a,(iy+cposy)
+	ld	b,a
+	and	a,1fh
+	ld	d,a
+	ld	a,b
+	and	a,20h
+	rlca
+	rlca
+	add	a,(iy+cposx)
+	ld	e,a
 	ret
 
 ckeys	db	000,000,000,000, 000,000,000,000	;00h..07h

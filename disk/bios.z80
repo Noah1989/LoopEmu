@@ -155,7 +155,11 @@ term	equ	multi
 
 	ld	ix,term
 test	rst	dvgetc
+	cp	a,13
+	jr	nz,test1
 	rst	dvputc
+	ld	a,10
+test1	rst	dvputc
 	jr	test
 
 ;	call	user
