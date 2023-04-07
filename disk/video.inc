@@ -14,13 +14,38 @@ vtiming	db	0d9h,039h
 vbase	equ	0 ; base I/O address
 vtable	equ	1 ; currently selected table (I/O address)
 
-vctrl	cp	a,vname
+vctrl	ld	e,a
+	call	dvdatiy
+	ld	a,e
+	cp	a,vclear
+	jr	nz,vctrl1
+	ld	a,(iy+vbase)
+	add	a,vadrl;
+	ld	c,a
+	xor	a,a
+	out	(c),a
+	inc	c;vadrh
+	out	(c),a
+	ld	a,c
+	add	a,vattr-vadrh
+	ld	l,a
+	add	a,vname+vincr-vattr
+	ld	h,a
+	ld	de,8192
+vctrl0	ld	c,l
+	out	(c),b
+	ld	c,h
+	ld	a,' '
+	out	(c),a
+	dec	de
+	ld	a,d
+	or	a,e
+	jr	nz,vctrl0
+	ret
+vctrl1	cp	a,vname
 	call	c,ioerr
 	cp	a,vpale+vincr+1
 	call	nc,ioerr
-	ld	b,a
-	call	dvdatiy
-	ld	a,b
 	add	a,(iy+vbase)
 	ld	(iy+vtable),a
 	ret

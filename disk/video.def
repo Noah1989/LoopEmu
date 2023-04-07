@@ -10,3 +10,4 @@ vpatt	equ	1ah ; pattern table (256 8x8 patterns, 32 bytes each)
 vpale	equ	1bh ; palette table (512 palettes, 16 8-bit colors each)
 vincr	equ	4   ; add this to I/O port no. for address auto increment
 
+vclear	equ	0ch ; control code to clear screen (attribute in b)

@@ -91,7 +91,20 @@ cwrite	equ	dvputcr
 
 cputc	ld	b,a
 	call	dvdatiy
-	push	ix
+	ld	a,b
+	cp	a,7fh ; erase
+	jr	nz,cputc0
+	ld	a,(iy+cposx)
+	and	a,a
+	ret	z
+	push	iy
+	ld	a,8
+	rst	dvputc
+	ld	a,' '
+	rst	dvputc
+	pop	iy
+	ld	b,8
+cputc0	push	ix
 	push	bc
 	ld	a,(iy+cvideo)
 	db	0ddh ; use ixl instead of l
@@ -121,9 +134,24 @@ cputc	ld	b,a
 	inc	(iy+cposy)
 	jr	cputc2
 cputc0a	cp	a,13 ; carriage return
-	jr	nz,cputc2
+	jr	nz,cputc0b
 	ld	(iy+cposx),0
 	jr	cputc2
+cputc0b	cp	a,8 ; backspace
+	jr	nz,cputc0c
+	call	cbacksp
+	jr	cputc2
+cputc0c cp	a,12 ; form feed (clear screen)
+	jr	nz,cputc0d
+	ld	b,(iy+ctxta)
+	ld	a,vclear
+	push	iy
+	call	dvctrl
+	pop	iy
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
+	jr	cputc2
+cputc0d
 ; put character
 cputc1	push	af
 	ld	a,vname
@@ -153,6 +181,15 @@ cputc2	ld	e,(iy+cposx)
 	ld	a,(iy+ccura)
 	rst	dvputc
 	pop	ix
+	ret
+
+cbacksp	dec	(iy+cposx)
+	ret	p
+	ld	(iy+cposx),79
+	dec	(iy+cposy)
+	ret	p
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
 	ret
 
 ckeys	db	000,000,000,000, 000,000,000,000	;00h..07h

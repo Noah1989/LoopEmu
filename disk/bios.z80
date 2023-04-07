@@ -50,6 +50,7 @@ virt5	ld	l,(ix+10)
 error	di
 	call	errst
 	call	errst
+	call	errst
 errloop	halt
 	jr	errloop
 errst	ld	a,20h
