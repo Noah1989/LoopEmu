@@ -4,7 +4,52 @@
 
 	org	user
 	ld	ix,(dvlist+term)
-	ld	a,'X'
+	call	newln
+	ld	a,'3'
+	ld	(outfgi),a
+	call	table
+	ld	a,'9'
+	ld	(outfgi),a
+	call	table
+	ret
+
+table	ld	a,'0'
+	ld	(outbg),a
+	ld	c,8
+loop1	ld	a,'0'
+	ld	(outfg),a
+	ld	b,8
+loop2	push	bc
+	ld	de,outstr
+	ld	bc,outln
+	rst	dvwrite
+	ld	hl,outfg
+	inc	(hl)
+	pop	bc
+	djnz	loop2
+	push	bc
+	call	newln
+	pop	bc
+	ld	hl,outbg
+	inc	(hl)
+	dec	c
+	jr	nz,loop1
+	call	newln
+	ret
+
+outstr	db	27,'[0m '	; space before
+	db	27,'['		; foreground color
+outfgi	db	'3'
+outfg	db	'0m'
+	db	27,'[4'		; background color
+outbg	db	'0m'
+	db	' X',27,'[1m','X '
+	db	27,'[0m '	; space after
+outln	equ	$-outstr
+
+newln	ld	a,13
+	rst	dvputc
+	ld	a,10
 	rst	dvputc
 	ret
 

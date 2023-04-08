@@ -10,7 +10,7 @@ sinit	call	dvdatiy
 	ld	b,6
 	otir
 	ret
-sinit1	db	4,04ch
+sinit1	db	4,00ch
 	db	3,0c1h
 	db	5,0e8h
 

@@ -176,9 +176,9 @@ cputc0d	cp	a,9 ; tab
 	cp	a,80
 	adc	a,-1
 	ld	(iy+cposx),a
-	jr	cputc2
+	jp	cputc2
 cputc0e cp	a,27 ; escape
-	jr	nz,cputc0f
+	jp	nz,cputc0f
 	ld	a,(iy+cescch)
 	and	a,a
 	jr	nz,cputces
@@ -210,17 +210,92 @@ cputces ld	a,(iy+cescc1)
 ; read c1 control character
 cputcc1	ld	a,(iy+cescch)
 	cp	a,'['
-	jr	nz,cputcex
+	jp	nz,cputcex
 	ld	(iy+cescc1),a
 	ld	(iy+cescarg),0
 	pop	ix
 	ret
 ; terminator of CSI sequence found
 cputcet	cp	a,'m'
-	jr	nz,cputcex
+	jp	nz,cputcex
 ; select graphic rendition
 	ld	a,(iy+cescarg)
+	and	a,a	; 0 - default style
+	jr	nz,cputcg1
+	ld	a,defattr
 	ld	(iy+ctxta),a
+	jp	cputcex
+cputcg1 cp	a,1	; 1 - bold
+	jr	nz,cputcg2
+	ld	a,(iy+ctxta)
+	or	a,80h
+	ld	(iy+ctxta),a
+	jr	cputcex
+cputcg2 cp	a,22	; 22 - regular
+	jr	nz,cputcg3
+	ld	a,(iy+ctxta)
+	and	a,7fh
+	ld	(iy+ctxta),a
+	jr	cputcex
+cputcg3 cp	a,30	; 30-37 - foreground color
+	jr	c,cputcex
+	cp	a,38
+	jr	nc,cputcg4
+	sub	a,30
+	ld	b,0
+	rra
+	rl	b
+	rra
+	rl	b
+	rra
+	rl	b
+	ld	a,(iy+ctxta)
+	and	a,0f0h
+	add	a,b
+	ld	(iy+ctxta),a
+	jr	cputcex
+cputcg4	cp	a,40	; 40-47 - background color
+	jr	c,cputcex
+	cp	a,48
+	jr	nc,cputcg5
+	sub	a,40
+	ld	b,0
+	rra
+	rl	b
+	rra
+	rl	b
+	rra
+	rl	b
+	ld	a,(iy+ctxta)
+	and	a,8fh
+	ld	c,a
+	ld	a,b
+	rlca
+	rlca
+	rlca
+	rlca
+	add	a,c
+	ld	(iy+ctxta),a
+	jr	cputcex
+cputcg5	cp	a,90	; 90-97 - bright foreground color
+	jr	c,cputcex
+	cp	a,98
+	jr	nc,cputcg6
+	sub	a,90
+	ld	b,0
+	rra
+	rl	b
+	rra
+	rl	b
+	rra
+	rl	b
+	ld	a,(iy+ctxta)
+	and	a,0f0h
+	or	a,008h
+	add	a,b
+	ld	(iy+ctxta),a
+	jr	cputcex
+cputcg6
 ; end of escape sequence
 cputcex	ld	(iy+cescch),0
 	ld	(iy+cescc1),0
