@@ -1,5 +1,7 @@
+	include	a:system.def
+
 ; device descriptors
-video	dw	ioerr	; read
+vdescr	dw	ioerr	; read
 	dw	vwrite	; write
 	dw	vseek	; seek
 	dw	ioerr	; getc
@@ -10,7 +12,7 @@ video	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 00h
 
-keybrd	dw	ioerr	; read
+kdescr	dw	ioerr	; read
 	dw	ioerr	; write
 	dw	ioerr	; seek
 	dw	kgetc	; getc
@@ -21,7 +23,7 @@ keybrd	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 10h
 
-serial	dw	sread	; read
+sdescr	dw	sread	; read
 	dw	swrite	; write
 	dw	ioerr	; seek
 	dw	sgetc	; getc
@@ -32,7 +34,7 @@ serial	dw	sread	; read
 	dw	ioerr	; close
 	dw	dvspace + 20h
 
-console	dw	cread	; read
+cdescr	dw	cread	; read
 	dw	cwrite	; write
 	dw	ioerr	; seek
 	dw	cgetc	; getc
@@ -43,7 +45,7 @@ console	dw	cread	; read
 	dw	ioerr	; close
 	dw	dvspace + 30h
 
-multi	dw	mread	; read
+mdescr	dw	mread	; read
 	dw	mwrite	; write
 	dw	ioerr	; seek
 	dw	mgetc	; getc
@@ -53,3 +55,30 @@ multi	dw	mread	; read
 	dw	ioerr	; open
 	dw	ioerr	; close
 	dw	dvspace + 40h
+
+; initialize device list
+sysinit ld	hl,mdescr
+	ld	(dvlist+term),hl
+; initialize video
+	ld	ix,vdescr
+	ld	b,0a0h
+	call	dvinit
+; initialize keyboard
+	ld	ix,kdescr
+	ld	b,0c0h
+	call	dvinit
+; initialize serial
+	ld	ix,sdescr
+	ld	b,0c2h
+	call	dvinit
+; initialize console
+	ld	ix,cdescr
+	ld	de,kdescr
+	ld	bc,vdescr
+	call	dvinit
+; initialize multi
+	ld	ix,mdescr
+	ld	de,cdescr
+	ld	bc,sdescr
+	call	dvinit
+	ret

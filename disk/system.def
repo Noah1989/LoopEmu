@@ -1,0 +1,3 @@
+; device list entry offsets
+term	equ	0	; default i/o device
+

@@ -36,7 +36,7 @@ def write_bytes(address, bytes):
 def chunks(seq, size):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
-hex = IntelHex(sys.argv[1])
+hexes = [IntelHex(hex) for hex in sys.argv[1:]]
 
 print('READY')
 
@@ -45,7 +45,8 @@ fails = 0
 write_bytes(0x0000, [0x76])
 reset()
 
-for (start, stop) in hex.segments():
+for hex in hexes:
+  for (start, stop) in hex.segments():
     for chunk in chunks(range(start, stop), 1024):
         address = chunk[0]
         data = [hex[a] for a in chunk]

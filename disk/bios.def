@@ -1,0 +1,22 @@
+charmap	equ	5000h;..6fffh	character bitmap
+stackl	equ	7000h;		stack limit
+stack	equ	7f00h;		stack below this address
+dvspace	equ	7f00h;..7fdfh	device data space
+dvlist	equ	7fe0h;..7fefh	global device list
+temp	equ	7ff0h;..7ff7h	scratch space
+timekpr	equ	7ff8h;..7fffh	real time clock / calendar
+user	equ	8000h;		user code area
+
+reset	equ	00h
+virt0	equ	08h
+virt1	equ	10h
+virt2	equ	18h
+virt3	equ	20h
+virt4	equ	28h
+virt5	equ	30h
+error	equ	38h
+nmi	equ	66h
+virt6	equ	68h
+virt7	equ	70h
+virt8	equ	78h
+

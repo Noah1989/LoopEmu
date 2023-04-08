@@ -8,7 +8,5 @@ test.hex: *.def
 	tnylpo-convert -c $*.hex -u $*.hex
 	objdump -s $*.hex || (rm $*.hex && exit 1)
 
-load: bios.hex
-	for file in $? ; do \
-	python.exe -u ../tools/loader.py $$file || exit 1 ; \
-	done
+load: bios.hex test.hex
+	python.exe -u ../tools/loader.py $?

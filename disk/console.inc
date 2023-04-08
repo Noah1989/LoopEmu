@@ -7,7 +7,9 @@ ccura	equ	6;	cursor attribute
 cposx	equ	7;	cursor column
 cposy	equ	8;	cursor row
 cscroll	equ	9;	scroll lines
-
+cescch	equ	10;	escape sequenc (current char)
+cescc1	equ	11;	C1 control code of escape sequence (e.g. '[' for CSI)
+cescarg	equ	12;	argument for CSI sequence (currently only one)
 
 ; modifier bitmasks
 cmshftl	equ	001b
@@ -25,6 +27,8 @@ cinit	call	dvdatiy
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
 	ld	(iy+cscroll),0
+	ld	(iy+cescch),0
+	ld	(iy+cescc1),0
 	ret
 
 cread	equ	dvgetcr
@@ -93,7 +97,13 @@ cwrite	equ	dvputcr
 
 cputc	ld	b,a
 	call	dvdatiy
-	ld	a,b
+	ld	a,(iy+cescch)
+	and	a,a
+	jr	z,cputc00
+	ld	(iy+cescch),b
+	ld	b,27
+	jr	cputc0
+cputc00	ld	a,b
 	cp	a,7fh ; erase
 	jr	nz,cputc0
 	ld	a,(iy+cposx)
@@ -129,19 +139,25 @@ cputc0	push	ix
 ; control characters
 	pop	af ; previously bc
 	cp	a,20h
-	jr	nc,cputc1
+	jp	nc,cputc1
 	cp	a,10 ; line feed
 	jr	nz,cputc0a
 	inc	(iy+cposy)
-	jr	cputc2
+	jp	cputc2
 cputc0a	cp	a,13 ; carriage return
 	jr	nz,cputc0b
 	ld	(iy+cposx),0
-	jr	cputc2
+	jp	cputc2
 cputc0b	cp	a,8 ; backspace
 	jr	nz,cputc0c
-	call	cbacksp
-	jr	cputc2
+	dec	(iy+cposx)
+	jp	p,cputc2
+	ld	(iy+cposx),79
+	dec	(iy+cposy)
+	jp	p,cputc2
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
+	jp	cputc2
 cputc0c cp	a,12 ; form feed (clear screen)
 	jr	nz,cputc0d
 	ld	e,(iy+ctxta)
@@ -151,7 +167,7 @@ cputc0c cp	a,12 ; form feed (clear screen)
 	pop	iy
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
-	jr	cputc2
+	jp	cputc2
 cputc0d	cp	a,9 ; tab
 	jr	nz,cputc0e
 	ld	a,(iy+cposx)
@@ -161,7 +177,55 @@ cputc0d	cp	a,9 ; tab
 	adc	a,-1
 	ld	(iy+cposx),a
 	jr	cputc2
-cputc0e
+cputc0e cp	a,27 ; escape
+	jr	nz,cputc0f
+	ld	a,(iy+cescch)
+	and	a,a
+	jr	nz,cputces
+	ld	(iy+cescch),27
+	pop	ix
+	ret
+; next byte in escape sequence
+cputces ld	a,(iy+cescc1)
+	and	a,a
+	jr	z,cputcc1
+; we already have c1 here (must be CSI, since nothing else is supported yet)
+	ld	a,(iy+cescch)
+	cp	40h
+	jr	nc,cputcet
+; another part of the CSI sequence (argument)
+	sub	a,30h
+	ld	b,a
+	ld	a,(iy+cescarg)
+	ld	c,a
+	rlca	;*2
+	rlca	;*4
+	rlca	;*8
+	add	a,c;*9
+	add	a,c;*10
+	add	a,b
+	ld	(iy+cescarg),a
+	pop	ix
+	ret
+; read c1 control character
+cputcc1	ld	a,(iy+cescch)
+	cp	a,'['
+	jr	nz,cputcex
+	ld	(iy+cescc1),a
+	ld	(iy+cescarg),0
+	pop	ix
+	ret
+; terminator of CSI sequence found
+cputcet	cp	a,'m'
+	jr	nz,cputcex
+; select graphic rendition
+	ld	a,(iy+cescarg)
+	ld	(iy+ctxta),a
+; end of escape sequence
+cputcex	ld	(iy+cescch),0
+	ld	(iy+cescc1),0
+	jr	cputc2
+cputc0f
 ; put character
 cputc1	push	af
 	ld	a,vname
@@ -222,14 +286,6 @@ cputc3	call	cposde
 	pop	ix
 	ret
 
-cbacksp	dec	(iy+cposx)
-	ret	p
-	ld	(iy+cposx),79
-	dec	(iy+cposy)
-	ret	p
-	ld	(iy+cposx),0
-	ld	(iy+cposy),0
-	ret
 
 cposde	ld	a,(iy+cscroll)
 	add	a,(iy+cposy)

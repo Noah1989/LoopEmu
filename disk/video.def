@@ -12,3 +12,4 @@ vincr	equ	4   ; add this to I/O port no. for address auto increment
 
 vclear	equ	0ch ; control code to clear screen (attribute in e)
 vnewln	equ	0ah ; control code to clear line d (attribute in e)
+

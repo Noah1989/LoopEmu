@@ -1,53 +1,46 @@
-charmap	equ	5000h;..6fffh	character bitmap
-stack	equ	7f00h;		stack below this address
-dvspace	equ	7f00h;..7fefh	device data space
-temp	equ	7ff0h;..7ff7h	scratch space
-timekpr	equ	7ff8h;..7fffh	real time clock / calendar
-
-user	equ	8000h ; user code area
-
+	include	a:bios.def
 	list	on
 
 ; boot code
-	org	0
+	org	reset
 	di
 	ld	sp,stack
 	jp	init
 
 ; rst vectors are used for fast virtual method calls
-	org	08h
-virt0	ld	l,(ix+0)
+	org	virt0
+	ld	l,(ix+0)
 	ld	h,(ix+1)
 	jp	(hl)
 
-	org	10h
-virt1	ld	l,(ix+2)
+	org	virt1
+	ld	l,(ix+2)
 	ld	h,(ix+3)
 	jp	(hl)
 
-	org	18h
-virt2	ld	l,(ix+4)
+	org	virt2
+	ld	l,(ix+4)
 	ld	h,(ix+5)
 	jp	(hl)
 
-	org	20h
-virt3	ld	l,(ix+6)
+	org	virt3
+	ld	l,(ix+6)
 	ld	h,(ix+7)
 	jp	(hl)
 
-	org	28h
-virt4	ld	l,(ix+8)
+	org	virt4
+	ld	l,(ix+8)
 	ld	h,(ix+9)
 	jp	(hl)
 
-	org	30h
-virt5	ld	l,(ix+10)
+	org	virt5
+	ld	l,(ix+10)
 	ld	h,(ix+11)
 	jp	(hl)
 
 ; rst 38h (opcode ff) -> error handler
-	org	38h
-error	di
+	org	error
+	di
 	call	errst
 	call	errst
 	call	errst
@@ -76,18 +69,20 @@ errnib	and	a,0fh
 	ret
 
 ; non-maskable interrupt
-	org	66h
+	org	nmi
 	rst	error
-	retn
 
 ; more virtual method calls
-virt6	ld	l,(ix+12)
+	org	virt6
+	ld	l,(ix+12)
 	ld	h,(ix+13)
 	jp	(hl)
-virt7	ld	l,(ix+14)
+	org	virt7
+	ld	l,(ix+14)
 	ld	h,(ix+15)
 	jp	(hl)
-virt8	ld	l,(ix+16)
+	org	virt8
+	ld	l,(ix+16)
 	ld	h,(ix+17)
 	jp	(hl)
 
@@ -112,56 +107,20 @@ init	ld	hl,last
 	ld	bc,charmap-last-1
 	ld	(hl),0ffh
 	ldir
-	ld	hl,charmap+2000h
-	ld	de,charmap+2000h+1
-	ld	bc,timekpr-[charmap+2000h]-1
+	ld	hl,stackl
+	ld	de,stackl+1
+	ld	bc,timekpr-stackl-1
 	ld	(hl),0ffh
 	ldir
-	ld	hl,user
-	ld	de,user+1
-	ld	bc,7fffh
-	ld	(hl),0ffh
-	ldir
-; initialize video
-	ld	ix,video
-	ld	b,0a0h
-	call	dvinit
-; initialize keyboard
-	ld	ix,keybrd
-	ld	b,0c0h
-	call	dvinit
-; initialize serial
-	ld	ix,serial
-	ld	b,0c2h
-	call	dvinit
-; initialize console
-	ld	ix,console
-	ld	de,keybrd
-	ld	bc,video
-	call	dvinit
-; initialize multi
-	ld	ix,multi
-	ld	de,console
-	ld	bc,serial
-	call	dvinit
-
-term	equ	multi
+; initialize hardware
+	call	sysinit
 
 ; welcome message
-	ld	ix,term
+	ld	ix,(dvlist+term)
 	ld	de,title
 	ld	bc,titleln
 	rst	dvwrite
 
-	ld	ix,term
-test	rst	dvgetc
-	cp	a,13
-	jr	nz,test1
-	rst	dvputc
-	ld	a,10
-test1	rst	dvputc
-	jr	test
-
-;	call	user
+	call	user
 last	rst	error
 
