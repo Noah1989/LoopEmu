@@ -146,12 +146,12 @@ vinit00	ld	a,(hl)
 	inc	c;vscrh
 	out	(c),a
 ; load character map
-	ld	a,b
+	ld	a,(iy+vbase)
 	add	a,vadrl
 	ld	c,a
 	xor	a,a
 	out	(c),a
-	inc	c ; vadrh
+	inc	c;vadrh
 	out	(c),a
 	exx	; alternate
 	ld	a,(iy+vbase)
