@@ -1,0 +1,41 @@
+	include	a:bios.def
+	include	a:system.def
+	include	a:device.def
+
+	list	on
+
+	org	shell
+	jp	smain
+
+sbanner	db 27,'[1m'
+	db 27,'[93m __                ',27,'[94m_____ _',13,10
+	db 27,'[93m|  |   ___ ___ ___',27,'[94m|     |_|___ ___ ___ ',13,10
+	db 27,'[93m|  |__| . | . | . |',27,'[94m | | | |  _|  _| . |',13,10
+	db 27,'[93m|_____|___|___|  _|',27,'[94m_|_|_|_|___|_| |___|',13,10
+	db	27,'[22;92mshell running ',27,'[1;93m|_|',27,'[22;92m ver. '
+	include	a:version.def
+	db	13,10
+	db 	27,'[0m',13,10
+sbannln	equ	$-sbanner
+
+sprompt	db	27,'[1;92m>',27,'[m '
+spromln	equ	$-sprompt
+
+smain	ld	ix,(dvlist+term)
+	ld	de,sbanner
+	ld	bc,sbannln
+	rst	dvwrite
+	ld	de,sprompt
+	ld	bc,spromln
+	rst	dvwrite
+	call	sreadln
+	ret
+
+sreadln	ld	ix,(dvlist+term)
+sreadl0	rst	dvgetc
+	cp	a,20h
+	jr	c,sreadl0
+	cp	a,7fh
+	jr	nc,sreadl0
+	rst	dvputc
+	jr	sreadl0

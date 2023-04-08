@@ -4,7 +4,7 @@
 vdescr	dw	ioerr	; read
 	dw	vwrite	; write
 	dw	vseek	; seek
-	dw	ioerr	; getc
+	dw	vgetc	; getc
 	dw	vputc	; putc
 	dw	vctrl	; control
 	dw	vinit	; init

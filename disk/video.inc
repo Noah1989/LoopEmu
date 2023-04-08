@@ -108,6 +108,11 @@ vputc	ld	b,a
 	out	(c),b
 	ret
 
+vgetc	call	dvdatiy
+	ld	c,(iy+vtable)
+	in	a,(c)
+	ret
+
 vseek	call	dvdatiy
 	ld	a,(iy+vbase)
 	add	a,vadrl

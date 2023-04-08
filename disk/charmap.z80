@@ -1,5 +1,6 @@
+	include	a:bios.def
 ; Terminus Font
-	org	5000h	; 5000h-6fffh
+	org	charmap	; 5000h-6fffh
 ; 0 NULL
 	db	00000000b, 00000000b
 	db	00000000b, 00000000b

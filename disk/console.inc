@@ -3,7 +3,7 @@ ckeybrd	equ	0;..1	keyboard device attached to the console
 cvideo	equ	2;..3	video device attached to the console
 cmodif	equ	4;	console keyboard modifiers
 ctxta	equ	5;	text attribute
-ccura	equ	6;	cursor attribute
+ccura	equ	6;	cursor attribute (inverted version of original)
 cposx	equ	7;	cursor column
 cposy	equ	8;	cursor row
 cscroll	equ	9;	scroll lines
@@ -17,6 +17,9 @@ cmshftl	equ	001b
 cmshftr	equ	010b
 cmshift	equ	011b
 
+; cursor xor mask
+ccurmsk	equ	077h
+
 cinit	call	dvdatiy
 	ld	(iy+ckeybrd),e
 	ld	(iy+ckeybrd+1),d
@@ -24,7 +27,7 @@ cinit	call	dvdatiy
 	ld	(iy+cvideo+1),b
 	ld	(iy+cmodif),0
 	ld	(iy+ctxta),defattr
-	ld	(iy+ccura),[defattr*16&0f0h]|[defattr/16&0fh]
+	ld	(iy+ccura),defattr~ccurmsk
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
 	ld	(iy+cscroll),0
@@ -133,7 +136,8 @@ cputc0	push	ix
 	ld	a,vattr
 	rst	dvctrl
 	pop	iy
-	ld	a,(iy+ctxta)
+	ld	a,(iy+ccura)
+	xor	a,ccurmsk
 	push	iy
 	rst	dvputc
 	pop	iy
@@ -321,8 +325,14 @@ cputcex	ld	(iy+cescch),0
 cputc0f
 ; put character
 cputc1	push	af
-	ld	a,vname
+	ld	a,vattr
 	push	iy
+	rst	dvctrl
+	pop	iy
+	ld	a,(iy+ctxta)
+	push	iy
+	rst	dvputc
+	ld	a,vname
 	rst	dvctrl
 	pop	iy
 	pop	af
@@ -373,8 +383,10 @@ cputc3	call	cposde
 	rst	dvseek
 	ld	a,vattr
 	rst	dvctrl
+	rst	dvgetc
 	pop	iy
-	ld	a,(iy+ccura)
+	xor	a,ccurmsk
+	ld	(iy+ccura),a
 	rst	dvputc
 	pop	ix
 	ret

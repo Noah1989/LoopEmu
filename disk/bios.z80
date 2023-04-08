@@ -89,7 +89,7 @@ errnib	and	a,0fh
 	org	80h
 
 ; title string near the beginning for easier rom identification
-title	db	12,'Loop Micro - Bootstrap Stage 1',13,10
+title	db	27,'[0m',12,'Loop Micro BIOS - Bootstrap Stage 1',13,10
 titleln	equ	$-title
 
 	include	a:device.inc
@@ -101,13 +101,8 @@ titleln	equ	$-title
 	include	a:system.inc
 
 ; main entry point
-; clear free memory
-init	ld	hl,last
-	ld	de,last+1
-	ld	bc,charmap-last-1
-	ld	(hl),0ffh
-	ldir
-	ld	hl,stackl
+; clear stack memory
+init	ld	hl,stackl
 	ld	de,stackl+1
 	ld	bc,timekpr-stackl-1
 	ld	(hl),0ffh
@@ -121,6 +116,7 @@ init	ld	hl,last
 	ld	bc,titleln
 	rst	dvwrite
 
-	call	user
+	call	shell
 last	rst	error
 
+	org	shell
