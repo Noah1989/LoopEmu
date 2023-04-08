@@ -9,7 +9,8 @@ cposy	equ	8;	cursor row
 cscroll	equ	9;	scroll lines
 cescch	equ	10;	escape sequenc (current char)
 cescc1	equ	11;	C1 control code of escape sequence (e.g. '[' for CSI)
-cescarg	equ	12;	argument for CSI sequence (currently only one)
+cescarg	equ	12;	argument for CSI sequence (maximum 2 args for now)
+cescar2	equ	13;	preceding argument for CSI sequence
 
 ; modifier bitmasks
 cmshftl	equ	001b
@@ -194,7 +195,14 @@ cputces ld	a,(iy+cescc1)
 	cp	40h
 	jr	nc,cputcet
 ; another part of the CSI sequence (argument)
-	sub	a,30h
+	cp	a,';'
+	jr	nz,cputca1
+	ld	a,(iy+cescarg)
+	ld	(iy+cescar2),a
+	ld	(iy+cescarg),0
+	pop	ix
+	ret
+cputca1	sub	a,30h
 	ld	b,a
 	ld	a,(iy+cescarg)
 	ld	c,a
@@ -213,32 +221,36 @@ cputcc1	ld	a,(iy+cescch)
 	jp	nz,cputcex
 	ld	(iy+cescc1),a
 	ld	(iy+cescarg),0
+	ld	(iy+cescar2),0ffh
 	pop	ix
 	ret
 ; terminator of CSI sequence found
 cputcet	cp	a,'m'
 	jp	nz,cputcex
 ; select graphic rendition
+	ld	a,(iy+cescar2)
+	cp	a,0ffh
+	jr	nz,cputcg0
 	ld	a,(iy+cescarg)
-	and	a,a	; 0 - default style
+cputcg0	and	a,a	; 0 - default style
 	jr	nz,cputcg1
 	ld	a,defattr
 	ld	(iy+ctxta),a
-	jp	cputcex
+	jp	cputcgx
 cputcg1 cp	a,1	; 1 - bold
 	jr	nz,cputcg2
 	ld	a,(iy+ctxta)
 	or	a,80h
 	ld	(iy+ctxta),a
-	jr	cputcex
+	jr	cputcgx
 cputcg2 cp	a,22	; 22 - regular
 	jr	nz,cputcg3
 	ld	a,(iy+ctxta)
 	and	a,7fh
 	ld	(iy+ctxta),a
-	jr	cputcex
+	jr	cputcgx
 cputcg3 cp	a,30	; 30-37 - foreground color
-	jr	c,cputcex
+	jr	c,cputcgx
 	cp	a,38
 	jr	nc,cputcg4
 	sub	a,30
@@ -253,9 +265,9 @@ cputcg3 cp	a,30	; 30-37 - foreground color
 	and	a,0f0h
 	add	a,b
 	ld	(iy+ctxta),a
-	jr	cputcex
+	jr	cputcgx
 cputcg4	cp	a,40	; 40-47 - background color
-	jr	c,cputcex
+	jr	c,cputcgx
 	cp	a,48
 	jr	nc,cputcg5
 	sub	a,40
@@ -278,7 +290,7 @@ cputcg4	cp	a,40	; 40-47 - background color
 	ld	(iy+ctxta),a
 	jr	cputcex
 cputcg5	cp	a,90	; 90-97 - bright foreground color
-	jr	c,cputcex
+	jr	c,cputcgx
 	cp	a,98
 	jr	nc,cputcg6
 	sub	a,90
@@ -294,8 +306,14 @@ cputcg5	cp	a,90	; 90-97 - bright foreground color
 	or	a,008h
 	add	a,b
 	ld	(iy+ctxta),a
-	jr	cputcex
+	jr	cputcgx
 cputcg6
+cputcgx	ld	a,(iy+cescar2)
+	cp	a,0ffh
+	jr	z,cputcex
+	ld	(iy+cescar2),0ffh
+	ld	a,(iy+cescarg)
+	jp	cputcg0
 ; end of escape sequence
 cputcex	ld	(iy+cescch),0
 	ld	(iy+cescc1),0
