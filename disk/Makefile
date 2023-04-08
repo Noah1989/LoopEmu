@@ -1,4 +1,4 @@
-all: charmap.hex bios.hex
+all: charmap.hex bios.hex test.hex
 
 bios.hex: *.inc *.def
 test.hex: *.def

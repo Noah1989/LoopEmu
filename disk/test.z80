@@ -2,6 +2,8 @@
 	include	a:system.def
 	include	a:device.def
 
+	list on
+
 	org	user
 	ld	ix,(dvlist+term)
 	call	newln

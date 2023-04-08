@@ -29,7 +29,7 @@ std::queue<uint8_t> *Sio::fifo(Channel ch)
 uint8_t Sio::status(Channel ch)
 {
     std::queue<uint8_t> *f = fifo(ch);
-    return f->empty() ? 0x00 : 0x01;
+    return f->empty() ? 0x04 : 0x05;
 }
 
 uint8_t Sio::nextByte(Channel ch)
@@ -47,9 +47,9 @@ uint8_t Sio::inPort(uint16_t port)
     case 0x00:
         return nextByte(Channel_A);
     case 0x01:
-        return nextByte(Channel_B);
-    case 0x02:
         return status(Channel_A);
+    case 0x02:
+        return nextByte(Channel_B);
     case 0x03:
         return status(Channel_B);
     default:
@@ -64,7 +64,7 @@ void Sio::outPort(uint16_t port, uint8_t value)
     case 0x00:
         emit transmit(Channel_A, value);
         break;
-    case 0x01:
+    case 0x02:
         emit transmit(Channel_B, value);
         break;
     }
