@@ -1,21 +1,25 @@
 ; data block indices
+
 ckeybrd	equ	0;..1	keyboard device attached to the console
 cvideo	equ	2;..3	video device attached to the console
 cmodif	equ	4;	console keyboard modifiers
 ctxta	equ	5;	text attribute
-ccura	equ	6;	cursor attribute (inverted version of original)
+ccura	equ	6;	saved attribute originally below cursor
 cposx	equ	7;	cursor column
 cposy	equ	8;	cursor row
 cscroll	equ	9;	scroll lines
-cescch	equ	10;	escape sequenc (current char)
-cescc1	equ	11;	C1 control code of escape sequence (e.g. '[' for CSI)
-cescarg	equ	12;	argument for CSI sequence (maximum 2 args for now)
-cescar2	equ	13;	preceding argument for CSI sequence
+cstate	equ	10;	state bits
+cansid	equ	16;..31	ansi escape sequence data (16 bytes)
+
+	include	a:ansi.inc
 
 ; modifier bitmasks
 cmshftl	equ	001b
 cmshftr	equ	010b
 cmshift	equ	011b
+
+; state bit numbers
+csansi	equ	0
 
 ; cursor xor mask
 ccurmsk	equ	077h
@@ -27,13 +31,15 @@ cinit	call	dvdatiy
 	ld	(iy+cvideo+1),b
 	ld	(iy+cmodif),0
 	ld	(iy+ctxta),defattr
-	ld	(iy+ccura),defattr~ccurmsk
+	ld	(iy+ccura),defattr
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0
 	ld	(iy+cscroll),0
-	ld	(iy+cescch),0
-	ld	(iy+cescc1),0
+	ld	(iy+cstate),0
+	call	ansiclr
 	ret
+
+; INPUT ROUTINES
 
 cread	equ	dvgetcr
 
@@ -97,314 +103,6 @@ cgetkey	call	dvdatiy
 	pop	ix
 	ret
 
-cwrite	equ	dvputcr
-
-cputc	ld	b,a
-	call	dvdatiy
-	ld	a,(iy+cescch)
-	and	a,a
-	jr	z,cputc00
-	ld	(iy+cescch),b
-	ld	b,27
-	jr	cputc0
-cputc00	ld	a,b
-	cp	a,7fh ; erase
-	jr	nz,cputc0
-	ld	a,(iy+cposx)
-	and	a,a
-	ret	z
-	push	iy
-	ld	a,8
-	rst	dvputc
-	ld	a,' '
-	rst	dvputc
-	pop	iy
-	ld	b,8
-cputc0	push	ix
-	push	bc
-	ld	a,(iy+cvideo)
-	db	0ddh ; use ixl instead of l
-	ld	l,a
-	ld	a,(iy+cvideo+1)
-	db	0ddh ; use ixh instead of h
-	ld	h,a
-;ix points to video device now
-	call	cposde
-	push	iy
-	rst	dvseek
-; remove cursor
-	ld	a,vattr
-	rst	dvctrl
-	pop	iy
-	ld	a,(iy+ccura)
-	xor	a,ccurmsk
-	push	iy
-	rst	dvputc
-	pop	iy
-; control characters
-	pop	af ; previously bc
-	cp	a,20h
-	jp	nc,cputc1
-	cp	a,10 ; line feed
-	jr	nz,cputc0a
-	inc	(iy+cposy)
-	jp	cputc2
-cputc0a	cp	a,13 ; carriage return
-	jr	nz,cputc0b
-	ld	(iy+cposx),0
-	jp	cputc2
-cputc0b	cp	a,8 ; backspace
-	jr	nz,cputc0c
-	dec	(iy+cposx)
-	jp	p,cputc2
-	ld	(iy+cposx),79
-	dec	(iy+cposy)
-	jp	p,cputc2
-	ld	(iy+cposx),0
-	ld	(iy+cposy),0
-	jp	cputc2
-cputc0c cp	a,12 ; form feed (clear screen)
-	jr	nz,cputc0d
-	ld	e,(iy+ctxta)
-	ld	a,vclear
-	push	iy
-	call	dvctrl
-	pop	iy
-	ld	(iy+cposx),0
-	ld	(iy+cposy),0
-	jp	cputc2
-cputc0d	cp	a,9 ; tab
-	jr	nz,cputc0e
-	ld	a,(iy+cposx)
-	add	a,8
-	and	a,0f8h
-	cp	a,80
-	adc	a,-1
-	ld	(iy+cposx),a
-	jp	cputc2
-cputc0e cp	a,27 ; escape
-	jp	nz,cputc0f
-	ld	a,(iy+cescch)
-	and	a,a
-	jr	nz,cputces
-	ld	(iy+cescch),27
-	pop	ix
-	ret
-; next byte in escape sequence
-cputces ld	a,(iy+cescc1)
-	and	a,a
-	jr	z,cputcc1
-; we already have c1 here (must be CSI, since nothing else is supported yet)
-	ld	a,(iy+cescch)
-	cp	40h
-	jr	nc,cputcet
-; another part of the CSI sequence (argument)
-	cp	a,';'
-	jr	nz,cputca1
-	ld	a,(iy+cescarg)
-	ld	(iy+cescar2),a
-	ld	(iy+cescarg),0
-	pop	ix
-	ret
-cputca1	sub	a,30h
-	ld	b,a
-	ld	a,(iy+cescarg)
-	ld	c,a
-	rlca	;*2
-	rlca	;*4
-	rlca	;*8
-	add	a,c;*9
-	add	a,c;*10
-	add	a,b
-	ld	(iy+cescarg),a
-	pop	ix
-	ret
-; read c1 control character
-cputcc1	ld	a,(iy+cescch)
-	cp	a,'['
-	jp	nz,cputcex
-	ld	(iy+cescc1),a
-	ld	(iy+cescarg),0
-	ld	(iy+cescar2),0ffh
-	pop	ix
-	ret
-; terminator of CSI sequence found
-cputcet	cp	a,'m'
-	jp	nz,cputcex
-; select graphic rendition
-	ld	a,(iy+cescar2)
-	cp	a,0ffh
-	jr	nz,cputcg0
-	ld	a,(iy+cescarg)
-cputcg0	and	a,a	; 0 - default style
-	jr	nz,cputcg1
-	ld	a,defattr
-	ld	(iy+ctxta),a
-	jp	cputcgx
-cputcg1 cp	a,1	; 1 - bold
-	jr	nz,cputcg2
-	ld	a,(iy+ctxta)
-	or	a,80h
-	ld	(iy+ctxta),a
-	jr	cputcgx
-cputcg2 cp	a,22	; 22 - regular
-	jr	nz,cputcg3
-	ld	a,(iy+ctxta)
-	and	a,7fh
-	ld	(iy+ctxta),a
-	jr	cputcgx
-cputcg3 cp	a,30	; 30-37 - foreground color
-	jr	c,cputcgx
-	cp	a,38
-	jr	nc,cputcg4
-	sub	a,30
-	ld	b,0
-	rra
-	rl	b
-	rra
-	rl	b
-	rra
-	rl	b
-	ld	a,(iy+ctxta)
-	and	a,0f0h
-	add	a,b
-	ld	(iy+ctxta),a
-	jr	cputcgx
-cputcg4	cp	a,40	; 40-47 - background color
-	jr	c,cputcgx
-	cp	a,48
-	jr	nc,cputcg5
-	sub	a,40
-	ld	b,0
-	rra
-	rl	b
-	rra
-	rl	b
-	rra
-	rl	b
-	ld	a,(iy+ctxta)
-	and	a,8fh
-	ld	c,a
-	ld	a,b
-	rlca
-	rlca
-	rlca
-	rlca
-	add	a,c
-	ld	(iy+ctxta),a
-	jr	cputcex
-cputcg5	cp	a,90	; 90-97 - bright foreground color
-	jr	c,cputcgx
-	cp	a,98
-	jr	nc,cputcg6
-	sub	a,90
-	ld	b,0
-	rra
-	rl	b
-	rra
-	rl	b
-	rra
-	rl	b
-	ld	a,(iy+ctxta)
-	and	a,0f0h
-	or	a,008h
-	add	a,b
-	ld	(iy+ctxta),a
-	jr	cputcgx
-cputcg6
-cputcgx	ld	a,(iy+cescar2)
-	cp	a,0ffh
-	jr	z,cputcex
-	ld	(iy+cescar2),0ffh
-	ld	a,(iy+cescarg)
-	jp	cputcg0
-; end of escape sequence
-cputcex	ld	(iy+cescch),0
-	ld	(iy+cescc1),0
-	jr	cputc2
-cputc0f
-; put character
-cputc1	push	af
-	ld	a,vattr
-	push	iy
-	rst	dvctrl
-	pop	iy
-	ld	a,(iy+ctxta)
-	push	iy
-	rst	dvputc
-	ld	a,vname
-	rst	dvctrl
-	pop	iy
-	pop	af
-	push	iy
-	rst	dvputc
-; new cursor position
-	pop	iy
-	ld	a,(iy+cposx)
-	inc	a
-	cp	a,80
-	jr	c,cputc11
-	xor	a,a
-	inc	(iy+cposy)
-cputc11	ld	(iy+cposx),a
-; scroll adjust
-cputc2	ld	a,(iy+cposy)
-	cp	a,30
-	jr	nz,cputc3
-	dec	(iy+cposy)
-	ld	a,(iy+cscroll)
-	inc	a
-	and	a,3fh
-	ld	(iy+cscroll),a
-	ld	l,a
-	ld	h,0
-	ld	l,a
-	add	hl,hl
-	add	hl,hl
-	add	hl,hl
-	add	hl,hl
-	ex	de,hl
-	ld	a,vscry
-	push	iy
-	rst	dvctrl
-	pop	iy
-	ld	a,(iy+cscroll)
-	add	a,(iy+cposy)
-	and	a,1fh
-	ld	d,a
-	ld	e,(iy+ctxta)
-	push	iy
-	ld	a,vnewln
-	rst	dvctrl
-	pop	iy
-; draw cursor
-cputc3	call	cposde
-	push	iy
-	rst	dvseek
-	ld	a,vattr
-	rst	dvctrl
-	rst	dvgetc
-	pop	iy
-	xor	a,ccurmsk
-	ld	(iy+ccura),a
-	rst	dvputc
-	pop	ix
-	ret
-
-
-cposde	ld	a,(iy+cscroll)
-	add	a,(iy+cposy)
-	ld	b,a
-	and	a,1fh
-	ld	d,a
-	ld	a,b
-	and	a,20h
-	rlca
-	rlca
-	add	a,(iy+cposx)
-	ld	e,a
-	ret
-
 ckeys	db	000,000,000,000, 000,000,000,000	;00h..07h
 	db	000,000,000,000, 000,000,'`',000	;08h..0fh
 	db	000,000,000,000, 000,'q','1',000	;10h..17h
@@ -451,4 +149,243 @@ cctrl	ld	b,a
 	ld	a,b
 	rst	dvctrl
 	pop	ix
+	ret
+
+; OUTPUT ROUTINES
+
+cwrite	equ	dvputcr
+
+cputc	ld	b,a
+	call	dvdatiy
+	bit	csansi,(iy+cstate)
+	jp	nz,ansiesc
+	ld	a,b
+	cp	a,7fh	; delete
+	jp	z,cputdel
+	cp	a,20h
+	jr	nc,cputc3
+	ld	hl,ccchrtb
+	call	switch
+	ret
+cputc3	push	ix
+	push	af
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	pop	af
+	call	cchrout
+	call	ccuradv
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+; ordered table of control character handlers
+ccchrtb	db	8	; backspace
+	dw	cputbs
+	db	9	; tab
+	dw	cputtab
+	db	10	; line feed
+	dw	cputlf
+	db	12	; form feed (clears screen)
+	dw	cputff
+	db	13	; carriage return
+	dw	cputcr
+	db	27	; escape
+	dw	cputesc
+	db	0	; default
+	dw	ionull
+
+cputdel	push	ix
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	dec	(iy+cposx)
+	jp	p,cputdl1
+	ld	(iy+cposx),0
+cputdl1	call	cposde
+	ld	a,' '
+	call	cchrout
+	call	ccurshw
+	pop	ix
+	ret
+
+cputbs	push	ix
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	dec	(iy+cposx)
+	jp	p,cputbs1
+	ld	(iy+cposx),79
+	dec	(iy+cposy)
+	jp	p,cputbs1
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
+cputbs1	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+cputtab	push	ix
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	ld	a,(iy+cposx)
+	add	a,8
+	and	a,-7
+	cp	a,80
+	jr	c,cputtb1
+	ld	a,79
+cputtb1	ld	(iy+cposx),a
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+cputlf	push	ix
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	inc	(iy+cposy)
+	call	cscradj
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+cputff	push	ix
+	call	cvdevix
+	ld	e,(iy+ctxta)
+	ld	a,vclear
+	push	iy
+	call	dvctrl
+	pop	iy
+	ld	(iy+cposx),0
+	ld	(iy+cposy),0
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+cputcr	push	ix
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	ld	(iy+cposx),0
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
+cputesc	set	csansi,(iy+cstate)
+	ret
+
+; get video device
+cvdevix	ld	a,(iy+cvideo)
+	db	0ddh ; use ixl instead of l
+	ld	l,a
+	ld	a,(iy+cvideo+1)
+	db	0ddh ; use ixh instead of h
+	ld	h,a
+	ret
+
+; remove the cursor from postion de (requires video device in ix)
+ccurhid	push	iy
+	rst	dvseek
+	ld	a,vattr
+	rst	dvctrl
+	pop	iy
+	ld	a,(iy+ccura)
+	push	iy
+	rst	dvputc
+	pop	iy
+	ret
+
+; output printable character from a to position de on video device in ix
+cchrout	push	af
+	push	iy
+	rst	dvseek
+	ld	a,vattr
+	rst	dvctrl
+	pop	iy
+	ld	a,(iy+ctxta)
+	push	iy
+	rst	dvputc
+	ld	a,vname
+	rst	dvctrl
+	pop	iy
+	pop	af
+	push	iy
+	rst	dvputc
+	pop	iy
+	ret
+
+; advance to next cursor position (requires video device in ix)
+ccuradv	ld	a,(iy+cposx)
+	inc	a
+	cp	a,80
+	jr	nc,ccurad1
+	ld	(iy+cposx),a
+	ret
+ccurad1	ld	(iy+cposx),0
+	inc	(iy+cposy)
+	call	cscradj
+	ret
+
+; scroll adjust (requires video device in ix)
+cscradj	ld	a,(iy+cposy)
+	cp	a,30
+	ret	nz
+	dec	(iy+cposy)
+	ld	a,(iy+cscroll)
+	inc	a
+	and	a,3fh
+	ld	(iy+cscroll),a
+	ld	l,a
+	ld	h,0
+	ld	l,a
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	ex	de,hl
+	ld	a,vscry
+	push	iy
+	rst	dvctrl
+	pop	iy
+	ld	a,(iy+cscroll)
+	add	a,(iy+cposy)
+	and	a,1fh
+	ld	d,a
+	ld	e,(iy+ctxta)
+	push	iy
+	ld	a,vnewln
+	rst	dvctrl
+	pop	iy
+	ret
+
+; draw the cursor at position de (requires video device in ix)
+ccurshw	push	iy
+	rst	dvseek
+	ld	a,vattr
+	rst	dvctrl
+	rst	dvgetc
+	pop	iy
+	ld	(iy+ccura),a
+	xor	a,ccurmsk
+	rst	dvputc
+	ret
+
+; get the video address of the cursor position into de
+cposde	ld	a,(iy+cscroll)
+	add	a,(iy+cposy)
+	ld	b,a
+	and	a,1fh
+	ld	d,a
+	ld	a,b
+	and	a,20h
+	rlca
+	rlca
+	add	a,(iy+cposx)
+	ld	e,a
 	ret

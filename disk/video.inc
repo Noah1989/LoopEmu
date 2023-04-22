@@ -291,6 +291,6 @@ loadp5	exx
 	ret
 
 ; default palette
-defpal	db	000h,008h,020h,028h,080h,088h,0a0h,0a8h
+defpal	db	000h,009h,021h,029h,081h,089h,0a1h,0a9h
 	db	054h,00ah,022h,02ah,082h,08ah,0a2h,0aah
 	db	057h,05fh,077h,07fh,0d7h,0dfh,0f7h,0ffh

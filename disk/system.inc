@@ -43,7 +43,7 @@ cdescr	dw	cread	; read
 	dw	cinit	; init
 	dw	ioerr	; open
 	dw	ioerr	; close
-	dw	dvspace + 30h
+	dw	dvspace + 30h ; needs 32 bytes!
 
 mdescr	dw	mread	; read
 	dw	mwrite	; write
@@ -54,7 +54,7 @@ mdescr	dw	mread	; read
 	dw	minit	; init
 	dw	ioerr	; open
 	dw	ioerr	; close
-	dw	dvspace + 40h
+	dw	dvspace + 50h
 
 ; initialize device list
 sysinit ld	hl,mdescr

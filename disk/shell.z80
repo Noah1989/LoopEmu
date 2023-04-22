@@ -33,9 +33,9 @@ smain	ld	ix,(dvlist+term)
 
 sreadln	ld	ix,(dvlist+term)
 sreadl0	rst	dvgetc
-	cp	a,20h
-	jr	c,sreadl0
-	cp	a,7fh
-	jr	nc,sreadl0
+	;cp	a,20h
+	;jr	c,sreadl0
+	;cp	a,7fh
+	;jr	nc,sreadl0
 	rst	dvputc
 	jr	sreadl0

@@ -89,9 +89,11 @@ errnib	and	a,0fh
 	org	80h
 
 ; title string near the beginning for easier rom identification
-title	db	27,'[0m',12,'Loop Micro BIOS - Bootstrap Stage 1',13,10
+title	db	27,'[2J',27,'[H',27,'[0m'
+	db	12,'Loop Micro BIOS - Bootstrap Stage 1',13,10
 titleln	equ	$-title
 
+	include a:utils.inc
 	include	a:device.inc
 	include	a:video.inc
 	include	a:keyboard.inc

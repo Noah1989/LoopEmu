@@ -1,7 +1,7 @@
 all: bios.hex shell.hex charmap.hex test.hex
 
 version.def: *.z80 *.inc *.def
-	echo -e "\tdb\t'$$(date +%Y-%m-%dT%H:%M)'\n" > version.def
+	echo "\tdb\t'$$(date +%Y-%m-%dT%H:%M)'\n" > version.def
 	unix2dos version.def
 
 bios.hex:  *.inc *.def
@@ -14,4 +14,4 @@ test.hex:  *.inc *.def
 	objdump -s $*.hex || (rm $*.hex && exit 1)
 
 load: bios.hex shell.hex test.hex
-	python.exe -u ../tools/loader.py $?
+	python3 -u ../tools/loader.py $?

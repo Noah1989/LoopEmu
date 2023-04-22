@@ -13,10 +13,6 @@
 	ld	a,'9'
 	ld	(outfgi),a
 	call	table
-
-test	call	dvgetc
-	call	dvputc
-	jr	test
 	ret
 
 table	ld	a,'0'
