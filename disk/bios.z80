@@ -1,5 +1,5 @@
-	include	a:bios.def
 	list	on
+	include	a:bios.def
 
 ; boot code
 	org	reset
@@ -41,25 +41,52 @@
 ; rst 38h (opcode ff) -> error handler
 	org	error
 	di
-	call	errst
-	call	errst
-	call	errst
-errloop	halt
-	jr	errloop
-errst	ld	a,20h
+	push	ix
+	call	errprnt
+	db	' IX:',0
+	call	errtrac
+	call	errprnt
+	db	'  STACK:',0
+	ld	b,8
+errdbg	call	errtrac
+	djnz	errdbg
+errhang	halt
+	jr	errhang
+
+; non-maskable interrupt
+	org	nmi
+	rst	error
+
+; title string near the beginning for easier rom identification
+title	db	27,'[2J',27,'[H',27,'[0m'
+	db	12,'Loop Micro BIOS - Bootstrap Stage 1',13,10
+titleln	equ	$-title
+
+; print function for error handler (direct i/o)
+errprnt	pop	hl
+errprn0	ld	a,(hl)
+	inc	hl
+	and	a,a
+	jr	nz,errprn1
+	jp	(hl)
+errprn1	out	(0bch),a
+	jr	errprn0
+
+; dump word from stack (direct i/o)
+errtrac	ld	a,20h
 	out	(0bch),a
 	pop	hl
 	ex	(sp),hl
 	ld	a,h
 	call	errhex
 	ld	a,l
-errhex	ld	b,a
+errhex	ld	e,a
 	rrca
 	rrca
 	rrca
 	rrca
 	call	errnib
-	ld	a,b
+	ld	a,e
 errnib	and	a,0fh
 	add	a,90h
 	daa
@@ -67,10 +94,6 @@ errnib	and	a,0fh
 	daa
 	out	(0bch),a
 	ret
-
-; non-maskable interrupt
-	org	nmi
-	rst	error
 
 ; more virtual method calls
 	org	virt6
@@ -85,13 +108,6 @@ errnib	and	a,0fh
 	ld	l,(ix+16)
 	ld	h,(ix+17)
 	jp	(hl)
-
-	org	80h
-
-; title string near the beginning for easier rom identification
-title	db	27,'[2J',27,'[H',27,'[0m'
-	db	12,'Loop Micro BIOS - Bootstrap Stage 1',13,10
-titleln	equ	$-title
 
 	include a:utils.inc
 	include	a:device.inc
@@ -111,7 +127,6 @@ init	ld	hl,stackl
 	ldir
 ; initialize hardware
 	call	sysinit
-
 ; welcome message
 	ld	ix,(dvlist+term)
 	ld	de,title

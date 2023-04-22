@@ -1,13 +1,26 @@
+	list	on
+
 	include	a:bios.def
 	include	a:system.def
 	include	a:device.def
-
-	list	on
+	include	a:utils.def
 
 	org	shell
-	jp	smain
+	jp	shmain
 
-sbanner	db 27,'[1m'
+shmaxln	equ	80	; maximum input line length
+
+; shell data block (128 bytes)
+shlnbfl	equ	shdata		; length of data in line buffer
+shlnbuf	equ	shlnbfl+1	; line buffer space
+shlnbnt	equ	shlnbuf+shmaxln ; reserved for null terminator of full buffer
+
+shinit	xor	a,a
+	ld	(shlnbfl),a
+	ld	(shlnbnt),a
+	ret
+
+shbannr	db 27,'[1m'
 	db 27,'[93m __                ',27,'[94m_____ _',13,10
 	db 27,'[93m|  |   ___ ___ ___',27,'[94m|     |_|___ ___ ___ ',13,10
 	db 27,'[93m|  |__| . | . | . |',27,'[94m | | | |  _|  _| . |',13,10
@@ -16,26 +29,83 @@ sbanner	db 27,'[1m'
 	include	a:version.def
 	db	13,10
 	db 	27,'[0m',13,10
-sbannln	equ	$-sbanner
+shbanrl	equ	$-shbannr
 
-sprompt	db	27,'[1;92m>',27,'[m '
-spromln	equ	$-sprompt
+shprmpt	db	27,'[1;92m>',27,'[m '
+shprmtl	equ	$-shprmpt
 
-smain	ld	ix,(dvlist+term)
-	ld	de,sbanner
-	ld	bc,sbannln
+shmain	ld	ix,(dvlist+term)
+	ld	de,shbannr
+	ld	bc,shbanrl
 	rst	dvwrite
-	ld	de,sprompt
-	ld	bc,spromln
+shloop	ld	de,shprmpt
+	ld	bc,shprmtl
 	rst	dvwrite
-	call	sreadln
-	ret
-
-sreadln	ld	ix,(dvlist+term)
-sreadl0	rst	dvgetc
-	;cp	a,20h
-	;jr	c,sreadl0
-	;cp	a,7fh
-	;jr	nc,sreadl0
+	call	shinit
+	call	shrdln
+	ld	a,13
 	rst	dvputc
-	jr	sreadl0
+	ld	a,10
+	rst	dvputc
+	ld	a,(shlnbfl)
+	ld	c,a
+	ld	b,0
+	ld	de,shlnbuf
+	rst	dvwrite
+	ld	a,13
+	rst	dvputc
+	ld	a,10
+	rst	dvputc
+	jr	shloop
+
+shrdln	ld	ix,(dvlist+term)
+shrdln0	rst	dvgetc
+	cp	a,20h
+	jr	c,shrdln2
+	cp	a,7fh
+	jr	nc,shrdln2
+; normal character, add to buffer and echo
+shrdln1	ld	e,a ; save character for later
+	ld	a,(shlnbfl)
+	cp	a,shmaxln
+	jr	nc,shrdln0 ; buffer full
+	ld	hl,shlnbuf
+	ld	c,a
+	ld	b,0
+	add	hl,bc
+	ld	(hl),e
+	inc	hl
+	ld	(hl),0
+	inc	a
+	ld	(shlnbfl),a
+	ld	a,e
+	rst	dvputc
+	jr	shrdln0
+; handle control character
+shrdln2	call	switch
+	db	8	; backspace
+	dw	shrdlbs
+	db	13	; return
+	dw	shrdlcr
+	db	7fh	; delete
+	dw	shrdlbs
+	db	0	; default
+	dw	shrdln0
+
+; handle backspace
+shrdlbs	ld	a,(shlnbfl)
+	and	a,a
+	jr	z,shrdln0
+	dec	a
+	ld	(shlnbfl),a
+	ld	a,8
+	rst	dvputc
+	ld	a,' '
+	rst	dvputc
+	ld	a,8
+	rst	dvputc
+	jr	shrdln0
+
+; handle carriage return (enter)
+shrdlcr	ret
+

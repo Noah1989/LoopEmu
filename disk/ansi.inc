@@ -26,9 +26,11 @@ ansiesc	ld	a,(iy+cansid+ansic1)
 ansies1	ld	a,b
 	cp	a,40h ; final byte >= 40h
 	jr	c,ansies2
-	ld	hl,ansiftb
 	call	switch
-	jr	ansiend
+	db	'm'	; select graphic rendition
+	dw	ansisgr
+	db	0	; default
+	dw	ansiend
 ; store into buffer
 ansies2	ld	e,a
 	ld	a,(iy+cansid+ansibln)
@@ -47,16 +49,11 @@ ansies2	ld	e,a
 	ld	(hl),0
 	inc	(iy+cansid+ansibln)
 	ret
+
 ; end of escape sequence
 ansiend	call	ansiclr
 	res	csansi,(iy+cstate)
 	ret
-
-; CSI final byte switch table
-ansiftb	db	'm'	; select graphic rendition
-	dw	ansisgr
-	db	0	; default
-	dw	ionull
 
 ansisgr	db	0fdh ; use iy instead of hl
 	ld	e,l
@@ -145,10 +142,9 @@ ansisg5	cp	a,90	; 90-97 - bright foreground color
 ansisg6
 ansisg9	ld	a,(hl)
 	and	a,a
-	ret	z
+	jp	z,ansiend
 	inc	hl ; skip separator
 	jp	ansisg0
-
 
 ; get argument from string at hl, default value from a unchanged if arg is empty
 ; upon return, hl points to the first non-numeric character encountered

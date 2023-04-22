@@ -1,4 +1,7 @@
-switch	ld	bc,3
+	include	a:utils.def
+	org	switch
+	pop	hl
+	ld	bc,3
 switch1	cp	a,(hl)
 	jr	nz,switch3
 switch2	inc	hl

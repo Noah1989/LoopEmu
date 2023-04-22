@@ -1,0 +1,3 @@
+; global adresses of util functions
+switch	equ	00e0h
+

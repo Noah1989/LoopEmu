@@ -162,26 +162,10 @@ cputc	ld	b,a
 	ld	a,b
 	cp	a,7fh	; delete
 	jp	z,cputdel
-	cp	a,20h
+	cp	a,20h ; control characters < 20h
 	jr	nc,cputc3
-	ld	hl,ccchrtb
 	call	switch
-	ret
-cputc3	push	ix
-	push	af
-	call	cvdevix
-	call	cposde
-	call	ccurhid
-	pop	af
-	call	cchrout
-	call	ccuradv
-	call	cposde
-	call	ccurshw
-	pop	ix
-	ret
-
-; ordered table of control character handlers
-ccchrtb	db	8	; backspace
+	db	8	; backspace
 	dw	cputbs
 	db	9	; tab
 	dw	cputtab
@@ -195,6 +179,19 @@ ccchrtb	db	8	; backspace
 	dw	cputesc
 	db	0	; default
 	dw	ionull
+cputc3	push	ix
+	push	af
+	call	cvdevix
+	call	cposde
+	call	ccurhid
+	pop	af
+	call	cchrout
+	call	ccuradv
+	call	cposde
+	call	ccurshw
+	pop	ix
+	ret
+
 
 cputdel	push	ix
 	call	cvdevix
