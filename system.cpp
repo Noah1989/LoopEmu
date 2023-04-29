@@ -2,6 +2,7 @@
 #include "intelhexclass.h"
 
 #include <fstream>
+#include <cmath>
 
 System::System(QObject *parent)
     : QObject{parent},
