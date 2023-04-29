@@ -17,6 +17,7 @@ System::System(QObject *parent)
     std::generate(upperMemory.begin(), upperMemory.end(), std::rand);
 
     load("disk/bios.hex");
+    load("disk/shell.hex");
     load("disk/charmap.hex");
     load("disk/test.hex");
 

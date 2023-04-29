@@ -241,6 +241,7 @@ shlexq1	inc	de
 shcmds	dw	shecho
 	dw	shclr
 	dw	shrst
+	dw	shrun
 	dw	0
 
 shecho	jr	shecho0
@@ -287,3 +288,9 @@ shclrsl	equ	$-shclrs
 shrst	jr	shrst0
 	db	'reset',0
 shrst0	rst	0
+
+shrun	jr	shrun0
+	db	'run',0
+shrun0	call	user
+	ret
+
