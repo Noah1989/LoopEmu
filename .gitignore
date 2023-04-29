@@ -1,4 +1,9 @@
-
+CMakeCache.txt
+CMakeFiles/
+LoopEmu
+LoopEmu_autogen/
+/Makefile
+cmake_install.cmake
 CMakeLists.txt.user
 *~
 *.lst
