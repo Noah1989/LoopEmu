@@ -34,45 +34,84 @@ shprmtl	equ	$-shprmpt
 
 ; MAIN LOOP
 
+; read a line, figure out command and agruments,
+; then run command with argument count in b
+; and de pointing to array of pointers to arguments
+; (including command name as argument 0)
+; ix pointing to input/output device (changes to ix by command are kept)
+
+; print banner
 shmain	ld	ix,(dvlist+term)
 	ld	de,shbannr
 	ld	bc,shbanrl
 	rst	dvwrite
+; print prompt
 shloop	ld	de,shprmpt
 	ld	bc,shprmtl
 	rst	dvwrite
+; read line, ignore empty ones
 	call	shrdln
 	ld	a,(shlnbfl)
 	and	a,a
 	jr	z,shloop
+; get tokens, ignore if none found
 	call	shlex
 	ld	a,(shlnntk)
 	and	a,a
 	jr	z,shloop
-	ld	b,a
-	ld	hl,shlntok
-shtest	ld	e,(hl)
+; find command
+	ld	hl,shcmds
+shfcmd1	ld	e,(hl)
 	inc	hl
 	ld	d,(hl)
 	inc	hl
-	push	bc
+	ld	a,e
+	or	a,d
+	jr	z,shcnf ; command not found
 	push	hl
-shtest1	ld	a,(de)
-	and	a,a
-	jr	z,shtest2
-	push	de
-	rst	dvputc
-	pop	de
+	ld	hl,(shlntok)
 	inc	de
-	jr	shtest1
-shtest2	ld	a,13
-	rst	dvputc
-	ld	a,10
+	ld	a,(de) ; string length
+	inc	de
+	ld	b,a
+shfcmd2	ld	a,(de)
+	cp	a,(hl)
+	jr	nz,shfcmd3 ; strings don't match
+	inc	de
+	inc	hl
+	djnz	shfcmd2
+; found it! (de points to entry point now)
+	ld	hl,shloop
+	ex	(sp),hl ; return address for jump below
+	ld	hl,shlnntk
+	ld	b,(hl)
+	inc	hl;shlntok
+	ex	de,hl
+	jp	(hl)
+; maybe the next one?
+shfcmd3	pop	hl
+	jr	shfcmd1
+; handle command not found
+shcnf	ld	de,shcnfs1
+	ld	bc,shcnfl1
+	rst	dvwrite
+	ld	hl,(shlntok)
+shcnf1	ld	a,(hl)
+	and	a,a
+	jr	z,shcnf2
+	push	hl
 	rst	dvputc
 	pop	hl
-	pop	bc
-	djnz	shtest
+	inc	hl
+	jr	shcnf1
+shcnf2	ld	de,shcnfs2
+	ld	bc,shcnfl2
+	rst	dvwrite
 	jr	shloop
+shcnfs1	db	27,'[31m','shell: command "'
+shcnfl1	equ	$-shcnfs1
+shcnfs2	db	'" not found',27,'[0m',13,10
+shcnfl2	equ	$-shcnfs2
 
 ; READ LINE
 
@@ -196,3 +235,55 @@ shlexq1	inc	de
 	ld	(de),a
 	inc	de
 	jr	shlex1
+
+; COMMANDS
+
+shcmds	dw	shecho
+	dw	shclr
+	dw	shrst
+	dw	0
+
+shecho	jr	shecho0
+	db	'echo',0
+shecho0	dec	b
+	ret	z
+	inc	de
+	inc	de
+	ex	de,hl
+shecho1	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	push	bc
+	push	hl
+shecho2	ld	a,(de)
+	and	a,a
+	jr	z,shecho3
+	push	de
+	rst	dvputc
+	pop	de
+	inc	de
+	jr	shecho2
+shecho3	ld	a,' '
+	rst	dvputc
+	pop	hl
+	pop	bc
+	djnz	shecho1
+	ld	a,13
+	rst	dvputc
+	ld	a,10
+	rst	dvputc
+	ret
+
+shclr	jr	shclr0
+	db	'clear',0
+shclr0	ld	de,shclrs
+	ld	bc,shclrsl
+	rst	dvwrite
+	ret
+shclrs	db	27,'[2J',27,'[H',27,'[0m',12
+shclrsl	equ	$-shclrs
+
+shrst	jr	shrst0
+	db	'reset',0
+shrst0	rst	0
