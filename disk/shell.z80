@@ -156,7 +156,12 @@ shrdln2	call	switch
 shrdlbs	ld	a,(shlnbfl)
 	and	a,a
 	jr	z,shrdln0
+	ld	hl,shlnbuf
 	dec	a
+	ld	b,0
+	ld	c,a
+	add	hl,bc
+	ld	(hl),0
 	ld	(shlnbfl),a
 	ld	a,8
 	rst	dvputc
