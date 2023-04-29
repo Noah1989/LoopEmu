@@ -8,18 +8,16 @@
 	org	shell
 	jp	shmain
 
-shmaxln	equ	80	; maximum input line length
+shmaxln	equ	77	; maximum input line length
+shmaxtk	equ	16	; maximum number of tokens
 
-; shell data block (128 bytes)
-shlnbfl	equ	shdata		; length of data in line buffer
-shlnbuf	equ	shlnbfl+1	; line buffer space
-shlnbnt	equ	shlnbuf+shmaxln ; reserved for null terminator of full buffer
-
-shinit	xor	a,a
-	ld	(shlnbfl),a
-	ld	(shlnbnt),a
-	ret
-
+; shell data block			bytes (max 128)
+shlnbfl	equ	shdata			;   1 length of data in line buffer
+shlnbuf	equ	shlnbfl+1		;  78 line buffer space
+shlnntk	equ	shlnbuf+shmaxln+1	;   1 number of tokens
+shlntok	equ	shlnntk+1		;  32 pointers to tokens
+					; ---
+					; 112 total
 shbannr	db 27,'[1m'
 	db 27,'[93m __                ',27,'[94m_____ _',13,10
 	db 27,'[93m|  |   ___ ___ ___',27,'[94m|     |_|___ ___ ___ ',13,10
@@ -34,6 +32,8 @@ shbanrl	equ	$-shbannr
 shprmpt	db	27,'[1;92m>',27,'[m '
 shprmtl	equ	$-shprmpt
 
+; MAIN LOOP
+
 shmain	ld	ix,(dvlist+term)
 	ld	de,shbannr
 	ld	bc,shbanrl
@@ -41,24 +41,45 @@ shmain	ld	ix,(dvlist+term)
 shloop	ld	de,shprmpt
 	ld	bc,shprmtl
 	rst	dvwrite
-	call	shinit
 	call	shrdln
-	ld	a,13
-	rst	dvputc
-	ld	a,10
-	rst	dvputc
 	ld	a,(shlnbfl)
-	ld	c,a
-	ld	b,0
-	ld	de,shlnbuf
-	rst	dvwrite
-	ld	a,13
+	and	a,a
+	jr	z,shloop
+	call	shlex
+	ld	a,(shlnntk)
+	and	a,a
+	jr	z,shloop
+	ld	b,a
+	ld	hl,shlntok
+shtest	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	push	bc
+	push	hl
+shtest1	ld	a,(de)
+	and	a,a
+	jr	z,shtest2
+	push	de
+	rst	dvputc
+	pop	de
+	inc	de
+	jr	shtest1
+shtest2	ld	a,13
 	rst	dvputc
 	ld	a,10
 	rst	dvputc
+	pop	hl
+	pop	bc
+	djnz	shtest
 	jr	shloop
 
-shrdln	ld	ix,(dvlist+term)
+; READ LINE
+
+shrdln	xor	a,a
+	ld	(shlnbfl),a
+	ld	(shlnbuf),a
+	ld	ix,(dvlist+term)
 shrdln0	rst	dvgetc
 	cp	a,20h
 	jr	c,shrdln2
@@ -107,5 +128,71 @@ shrdlbs	ld	a,(shlnbfl)
 	jr	shrdln0
 
 ; handle carriage return (enter)
-shrdlcr	ret
+shrdlcr	ld	a,13
+	rst	dvputc
+	ld	a,10
+	rst	dvputc
+	ret
 
+; LEXICAL ANALYSIS
+
+; split line buffer at whitespace, adding null terminators
+; fill token array with pointers to where the tokens start
+; quotes can be used to include whitespace inside tokens
+shlex	xor	a,a
+	ld	(shlnntk),a
+	ld	hl,shlntok
+	ld	de,shlnbuf
+shlex1	ld	a,(de)
+	and	a,a
+	ret	z	; end of input line
+; skip whitespace
+	cp	a,21h
+	jr	nc,shlex2
+	inc	de
+	jr	shlex1
+; found a token
+shlex2	ld	b,a
+	ld	a,(shlnntk)
+	cp	a,shmaxtk
+	ret	z ; token buffer full, meh...
+	inc	a
+	ld	(shlnntk),a
+	ld	a,b
+; check for quote
+	cp	a,27h ; single quote
+	jr	z,shlexqt
+	cp	a,22h ; double quote
+	jr	z,shlexqt
+; store regular token, find whitespace/end
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	inc	hl
+shlex3	inc	de
+	ld	a,(de)
+	and	a,a
+	ret	z	; end of line
+	cp	a,21h
+	jr	nc,shlex3
+	xor	a,a
+	ld	(de),a
+	inc	de
+	jr	shlex1
+; store quoted token, find closing quote
+shlexqt	inc	de
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	inc	hl
+	ld	b,a ; opening quote char
+shlexq1	inc	de
+	ld	a,(de)
+	and	a,a
+	ret	z	; end of line (no closing quote, but that's OK)
+	cp	a,b
+	jr	nz,shlexq1
+	xor	a,a
+	ld	(de),a
+	inc	de
+	jr	shlex1
