@@ -3,15 +3,15 @@
 ; DEVICE DESCRIPTORS
 
 ; video
-vdescr	dw	ioerr	; read
+vdescr	dw	vread	; read
 	dw	vwrite	; write
 	dw	vseek	; seek
 	dw	vgetc	; getc
 	dw	vputc	; putc
 	dw	vctrl	; control
 	dw	vinit	; init
-	dw	ioerr	; open
-	dw	ioerr	; close
+	dw	vopen	; open
+	dw	ionull	; close
 	dw	dvspace + 00h
 
 ; keyboard
@@ -69,21 +69,21 @@ rdescr	dw	ioerr	; read
 	dw	ioerr	; getc
 	dw	ioerr	; putc
 	dw	ioerr	; control
-	dw	ioerr	; init
+	dw	rinit	; init
 	dw	ropen	; open
 	dw	ioerr	; close
 	dw	dvspace + 60h
 
 ; memory
-mmdescr	dw	ioerr	; read
-	dw	ioerr	; write
-	dw	ioerr	; seek
-	dw	ioerr	; getc
-	dw	ioerr	; putc
+mmdescr	dw	mmread	; read
+	dw	mmwrite	; write
+	dw	mmseek	; seek
+	dw	mmgetc	; getc
+	dw	mmputc	; putc
 	dw	ioerr	; control
-	dw	ioerr	; init
-	dw	ropen	; open
-	dw	ioerr	; close
+	dw	mminit	; init
+	dw	mmopen	; open
+	dw	ionull	; close
 	dw	dvspace + 70h
 
 ; initialize device list
@@ -112,5 +112,11 @@ sysinit ld	hl,mdescr
 	ld	ix,mdescr
 	ld	de,cdescr
 	ld	bc,sdescr
+	call	dvinit
+; initialize rootfs
+	ld	ix,rdescr
+	call	dvinit
+; initialize memory
+	ld	ix,mmdescr
 	call	dvinit
 	ret

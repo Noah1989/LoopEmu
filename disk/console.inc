@@ -255,7 +255,7 @@ cputff	push	ix
 	ld	e,(iy+ctxta)
 	ld	a,vclear
 	push	iy
-	call	dvctrl
+	rst	dvctrl
 	pop	iy
 	ld	(iy+cposx),0
 	ld	(iy+cposy),0

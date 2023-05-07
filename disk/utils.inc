@@ -1,4 +1,5 @@
 	include	a:utils.def
+
 	org	switch
 	pop	hl
 	ld	bc,3
@@ -17,3 +18,4 @@ switch3	add	hl,bc
 	jr	z,switch2
 	ld	a,e
 	jr	switch1
+

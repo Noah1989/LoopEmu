@@ -70,12 +70,12 @@ errprn0	ld	a,(hl)
 	and	a,a
 	jr	nz,errprn1
 	jp	(hl)
-errprn1	out	(0bch),a
+errprn1	call	errout
 	jr	errprn0
 
 ; dump word from stack (direct i/o)
 errtrac	ld	a,20h
-	out	(0bch),a
+	call	errout
 	pop	hl
 	ex	(sp),hl
 	ld	a,h
@@ -93,7 +93,13 @@ errnib	and	a,0fh
 	daa
 	adc	a,40h
 	daa
-	out	(0bch),a
+errout	out	(0bch),a
+	push	af
+errout1	in	a,(0c3h)
+	and	a,04h
+	jr	z,errout1
+	pop	af
+	out	(0c2h),a
 	ret
 
 ; more virtual method calls
@@ -115,9 +121,10 @@ errnib	and	a,0fh
 	include	a:video.inc
 	include	a:keyboard.inc
 	include	a:console.inc
-	include a:serial.inc
-	include a:multi.inc
-	include a:rootfs.inc
+	include	a:serial.inc
+	include	a:multi.inc
+	include	a:rootfs.inc
+	include	a:memdev.inc
 	include	a:system.inc
 
 ; main entry point

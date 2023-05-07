@@ -1,4 +1,3 @@
 fsdir	equ	1
 fsdev	equ	2
-fsdevc	equ	3
 

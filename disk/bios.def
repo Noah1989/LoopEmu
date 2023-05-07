@@ -7,17 +7,17 @@ virt4	equ	28h
 virt5	equ	30h
 error	equ	38h
 nmi	equ	66h
-virt6	equ	0c8h
-virt7	equ	0d0h
-virt8	equ	0d8h
+virt6	equ	0d0h
+virt7	equ	0d8h
+virt8	equ	0e0h
 
 shell	equ	1000h;		shell code area
 charmap	equ	5000h;..6fffh	character bitmap
 stackl	equ	7000h;		stack limit
-stack	equ	7f00h;		stack below this address
-shdata	equ	7f00h;..7f7fh	shell data space
-dvspace	equ	7f80h;..7fdfh	device data space
-dvlist	equ	7fe0h;..7fefh	global device list
+stack	equ	7e00h;		stack below this address
+shdata	equ	7e00h;..7e7fh	shell data space
+dvlist	equ	7e80h;..7e8fh	global device list
+dvspace	equ	7f00h;..7fefh	device data space
 temp	equ	7ff0h;..7ff7h	scratch space
 timekpr	equ	7ff8h;..7fffh	real time clock / calendar
 user	equ	8000h;		user code area

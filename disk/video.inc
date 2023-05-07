@@ -102,6 +102,16 @@ vwrite	xor	a,a
 	otir
 	ret
 
+vread	xor	a,a
+	cp	a,b
+	call	nz,error ; TODO: support larger reads
+	ld	b,c
+	call	dvdatiy
+	ld	c,(iy+vtable)
+	ex	de,hl
+	inir
+	ret
+
 vputc	ld	b,a
 	call	dvdatiy
 	ld	c,(iy+vtable)
@@ -113,6 +123,7 @@ vgetc	call	dvdatiy
 	in	a,(c)
 	ret
 
+vopen	ld	de,0
 vseek	call	dvdatiy
 	ld	a,(iy+vbase)
 	add	a,vadrl
@@ -120,6 +131,14 @@ vseek	call	dvdatiy
 	out	(c),e
 	inc	c;vadrh
 	out	(c),d
+	ld	a,d
+	rlca
+	rlca
+	rlca
+	and	a,3
+	add	a,vname+vincr
+	add	a,(iy+vbase)
+	ld	(iy+vtable),a
 	ret
 
 ; initialize data block

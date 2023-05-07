@@ -20,9 +20,27 @@ dump1	inc	de
 	ld	d,(hl)
 	inc	hl
 ; TODO parse remaining args
+	ld	hl,-16 ; buffer space
+	add	hl,sp
+	ld	sp,hl
 	push	ix
 	ld	ix,(dvlist+rootfs)
+	push	hl
 	call	dvopen
+	pop	de
+	ld	bc,16
+	rst	dvread
 	pop	ix
+	ld	hl,0
+	add	hl,sp
+	ld	b,16
+dump2	ld	a,(hl)
+	push	bc
+	push	hl
+	rst	dvputc
+	pop	hl
+	pop	bc
+	inc	hl
+	djnz	dump2
+	ld	sp,hl
 	ret
-
