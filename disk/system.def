@@ -1,3 +1,4 @@
 ; device list entry offsets
 term	equ	0	; default i/o device
+rootfs	equ	2	; root file system
 

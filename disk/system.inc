@@ -1,6 +1,8 @@
 	include	a:system.def
 
-; device descriptors
+; DEVICE DESCRIPTORS
+
+; video
 vdescr	dw	ioerr	; read
 	dw	vwrite	; write
 	dw	vseek	; seek
@@ -12,6 +14,7 @@ vdescr	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 00h
 
+; keyboard
 kdescr	dw	ioerr	; read
 	dw	ioerr	; write
 	dw	ioerr	; seek
@@ -23,6 +26,7 @@ kdescr	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 10h
 
+; serial
 sdescr	dw	sread	; read
 	dw	swrite	; write
 	dw	ioerr	; seek
@@ -34,6 +38,7 @@ sdescr	dw	sread	; read
 	dw	ioerr	; close
 	dw	dvspace + 20h
 
+; console
 cdescr	dw	cread	; read
 	dw	cwrite	; write
 	dw	ioerr	; seek
@@ -45,6 +50,7 @@ cdescr	dw	cread	; read
 	dw	ioerr	; close
 	dw	dvspace + 30h ; needs 32 bytes!
 
+; multi (console+serial)
 mdescr	dw	mread	; read
 	dw	mwrite	; write
 	dw	ioerr	; seek
@@ -56,9 +62,35 @@ mdescr	dw	mread	; read
 	dw	ioerr	; close
 	dw	dvspace + 50h
 
+; rootfs
+rdescr	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ioerr	; init
+	dw	ropen	; open
+	dw	ioerr	; close
+	dw	dvspace + 60h
+
+; memory
+mmdescr	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ioerr	; init
+	dw	ropen	; open
+	dw	ioerr	; close
+	dw	dvspace + 70h
+
 ; initialize device list
 sysinit ld	hl,mdescr
 	ld	(dvlist+term),hl
+	ld	hl,rdescr
+	ld	(dvlist+rootfs),hl
 ; initialize video
 	ld	ix,vdescr
 	ld	b,0a0h

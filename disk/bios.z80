@@ -1,5 +1,6 @@
 	list	on
 	include	a:bios.def
+	include	a:fs.def
 
 ; boot code
 	org	reset
@@ -116,6 +117,7 @@ errnib	and	a,0fh
 	include	a:console.inc
 	include a:serial.inc
 	include a:multi.inc
+	include a:rootfs.inc
 	include	a:system.inc
 
 ; main entry point

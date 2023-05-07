@@ -108,7 +108,7 @@ shcnf2	ld	de,shcnfs2
 	ld	bc,shcnfl2
 	rst	dvwrite
 	jr	shloop
-shcnfs1	db	27,'[31m','shell: command "'
+shcnfs1	db	27,'[91m','shell: command "'
 shcnfl1	equ	$-shcnfs1
 shcnfs2	db	'" not found',27,'[0m',13,10
 shcnfl2	equ	$-shcnfs2
@@ -247,6 +247,7 @@ shcmds	dw	shecho
 	dw	shclr
 	dw	shrst
 	dw	shrun
+	dw	dump
 	dw	0
 
 shecho	jr	shecho0
@@ -298,4 +299,7 @@ shrun	jr	shrun0
 	db	'run',0
 shrun0	call	user
 	ret
+
+; more complex commands in their own files
+	include	a:dump.inc
 
