@@ -19,3 +19,29 @@ switch3	add	hl,bc
 	ld	a,e
 	jr	switch1
 
+	org	fromhex
+	call	hexnib
+	rlca
+	rlca
+	rlca
+	rlca
+	ld	c,a
+	call	hexnib
+	or	a,c
+	ret
+hexnib	ld	a,(hl)
+	inc	hl
+	cp	a,'0'
+	call	c,error
+	cp	a,'9'+1
+	jr	nc,hexnib1
+	sub	a,'0'
+	ret
+hexnib1	or	a,20h ; to lowercase
+	cp	a,'a'
+	call	c,error
+	cp	a,'f'+1
+	call	nc,error
+	add	a,0ah-'a'
+	ret
+

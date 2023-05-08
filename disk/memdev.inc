@@ -16,7 +16,11 @@ mmread	call	dvdatiy
 
 mmwrite	equ	ioerr
 
-mmseek	equ	ioerr
+mmseek	call	dvdatiy
+	ld	(iy+mmptr),e
+	ld	(iy+mmptr+1),d
+	ret
+
 mmgetc	equ	ioerr
 mmputc	equ	ioerr
 
