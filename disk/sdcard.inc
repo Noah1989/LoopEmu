@@ -124,12 +124,27 @@ sdopen4	ld	a,58
 	ret
 
 sdseek	call	dvdatiy
-	
 ; check and set byte address (de)
 	ld	a,d
 	cp	a,2
-	call	nc,error ; relative address not within sector size
-	ld	(iy+sdrela),e
+	jr	c,sdseek0
+; handle relative address not within sector size
+	rra	; divide by 512 (by also ignoring e); note that before this carry is 0
+	add	a,c
+	ld	c,a
+	jr	nc,sdsee01
+	inc	b
+	jr	nz,sdsee01
+	exx
+	inc	c
+	jr	nz,sdsee00
+	inc	b
+	call	z,error ; overflow
+sdsee00	exx
+sdsee01	ld	a,d
+	and	a,1
+	ld	d,a
+sdseek0	ld	(iy+sdrela),e
 	ld	(iy+sdrela+1),d
 ; move block address from bc'bc to dehl
 	exx
@@ -161,7 +176,11 @@ sdseek1	bit	sdsdrty,(iy+sdstate)
 	call	sdflush
 	pop	hl
 	pop	de
-sdseek2	ld	a,17
+sdseek2	ld	(iy+sdblka),l
+	ld	(iy+sdblka+1),h
+	ld	(iy+sdblka+2),e
+	ld	(iy+sdblka+3),d
+	ld	a,17
 	call	sdcmd
 	call	sdrsp1
 	ld	de,-1
@@ -213,7 +232,18 @@ sdgetc1	ld	l,(iy+sdbufp)
 	ld	(iy+sdrela+1),d
 	ret
 
-sdnext	rst	error ; TODO
+sdnext	ld	l,(iy+sdblka)
+	ld	h,(iy+sdblka+1)
+	ld	e,(iy+sdblka+2)
+	ld	d,(iy+sdblka+3)
+	ld	bc,1
+	add	hl,bc
+	ex	de,hl
+	dec	c
+	adc	hl,bc
+	ex	de,hl
+	call	sdseek1
+	ret
 
 sdclose	call	dvdatiy
 	bit	sdsopen,(iy+sdstate)
