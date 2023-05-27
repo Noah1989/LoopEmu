@@ -7,3 +7,7 @@ cmake_install.cmake
 CMakeLists.txt.user
 *~
 *.lst
+.cmake/
+LoopEmu.cbp
+Testing/
+qtcsettings.cmake
