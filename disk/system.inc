@@ -86,6 +86,18 @@ mmdescr	dw	mmread	; read
 	dw	ionull	; close
 	dw	dvspace + 70h
 
+; sd card
+sddescr	dw	sdread	; read
+	dw	sdwrite	; write
+	dw	sdseek	; seek
+	dw	sdgetc	; getc
+	dw	sdputc	; putc
+	dw	sdctrl	; control
+	dw	sdinit	; init
+	dw	sdopen	; open
+	dw	sdclose	; close
+	dw	dvspace + 80h
+
 ; initialize device list
 sysinit ld	hl,mdescr
 	ld	(dvlist+term),hl
@@ -119,4 +131,10 @@ sysinit ld	hl,mdescr
 ; initialize memory
 	ld	ix,mmdescr
 	call	dvinit
+; initialize sdcard
+	ld	ix,sddescr
+	ld	b,0d0h
+	ld	de,sdbufs
+	call	dvinit
+; done
 	ret

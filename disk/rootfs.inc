@@ -91,10 +91,10 @@ rootdir	dw	0
 	db	0
 
 devdir	dw	rootdir
-	db	'memory',0
-	db	fsdev
+	db	'memory',0,fsdev
 	dw	mmdescr
-	db	'video',0
-	db	fsdev
+	db	'sdcard',0,fsdev
+	dw	sddescr
+	db	'video',0,fsdev
 	dw	vdescr
 	db	0

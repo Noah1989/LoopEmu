@@ -14,7 +14,8 @@ virt8	equ	0e0h
 shell	equ	1000h;		shell code area
 charmap	equ	5000h;..6fffh	character bitmap
 stackl	equ	7000h;		stack limit
-stack	equ	7e00h;		stack below this address
+stack	equ	7c00h;		stack below this address
+sdbufs	equ	7c00h;..7dffh	sd card sector buffer
 shdata	equ	7e00h;..7e7fh	shell data space
 dvlist	equ	7e80h;..7e8fh	global device list
 dvspace	equ	7f00h;..7fefh	device data space

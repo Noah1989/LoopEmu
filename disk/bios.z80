@@ -125,6 +125,7 @@ errout1	in	a,(0c3h)
 	include	a:multi.inc
 	include	a:rootfs.inc
 	include	a:memdev.inc
+	include a:sdcard.inc
 	include	a:system.inc
 
 ; main entry point
