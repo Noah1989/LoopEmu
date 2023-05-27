@@ -1,9 +1,10 @@
 ; device data block offsetrs
 
-sdbufp	equ	0	; pointer to 512-byte buffer
-sdstate	equ	2	; current state
-sdport	equ	3	; i/o port base
-sdblk	equ	4	; current block
+sdbufp	equ	0;~1	pointer to 512-byte buffer
+sdstate	equ	2;	current state
+sdport	equ	3;	i/o port base
+sdblka	equ	4;~7	current block address (32-bit)
+sdrela	equ	8;~9	relative byte address (0~511)
 
 ; state bits
 sdsopen	equ	0	; open
@@ -108,8 +109,81 @@ sdopen4	ld	a,58
 	bit	6,d ; this is 1 if the card is SDHC/SDXC
 	call	z,error ; SDSC not supported (yet)
 ; done
+	ld	a,0ffh
+	ld	(iy+sdblka),a
+	ld	(iy+sdblka+1),a
+	ld	(iy+sdblka+2),a
+	ld	(iy+sdblka+3),a
 	set	sdsopen,(iy+sdstate)
+	exx
+	ld	bc,0
+	exx
+	ld	bc,0
+	ld	de,0
+	rst	dvseek
 	ret
+
+sdseek	call	dvdatiy
+	
+; check and set byte address (de)
+	ld	a,d
+	cp	a,2
+	call	nc,error ; relative address not within sector size
+	ld	(iy+sdrela),e
+	ld	(iy+sdrela+1),d
+; move block address from bc'bc to dehl
+	exx
+	push	bc
+	exx
+	pop	de
+	ld	h,b
+	ld	l,c
+; compare block address
+	ld	a,l
+	cp	a,(iy+sdblka)
+	jr	nz,sdseek1
+	ld	a,h
+	cp	a,(iy+sdblka+1)
+	jr	nz,sdseek1
+	ld	a,e
+	cp	a,(iy+sdblka+2)
+	jr	nz,sdseek1
+	ld	a,d
+	cp	a,(iy+sdblka+3)
+	jr	nz,sdseek1
+; same block, nothing to do
+	ret
+; different block, need to load
+sdseek1	bit	sdsdrty,(iy+sdstate)
+	jr	z,sdseek2
+	push	de
+	push	hl
+	call	sdflush
+	pop	hl
+	pop	de
+sdseek2	ld	a,17
+	call	sdcmd
+	call	sdrsp1
+	ld	de,-1
+	ld	c,(iy+sdport)
+sdseek3	in	a,(c)
+	cp	a,0feh ; start token
+	jr	z,sdseek4
+	dec	de
+	ld	a,d
+	or	a,e
+	jr	nz,sdseek3
+	call	error ; timeout
+sdseek4	ld	l,(iy+sdbufp)
+	ld	h,(iy+sdbufp+1)
+	ld	b,0 ; 256 repetitions
+	inir
+	inir
+	in	l,(c) ; crc (ignored for now)
+	in	h,(c)
+	ret
+
+sdflush	rst	error ; TODO
 
 ; send command a with argument dehl, checksum b
 sdcmd	set	0,b ; end bit
@@ -121,6 +195,34 @@ sdcmd	set	0,b ; end bit
 	out	(c),h
 	out	(c),l
 	out	(c),b
+	ret
+
+sdgetc	call	dvdatiy
+	ld	e,(iy+sdrela)
+	ld	d,(iy+sdrela+1)
+	bit	1,d
+	jr	z,sdgetc1
+	call	sdnext
+	ld	de,0
+sdgetc1	ld	l,(iy+sdbufp)
+	ld	h,(iy+sdbufp+1)
+	add	hl,de
+	ld	a,(hl)
+	inc	de
+	ld	(iy+sdrela),e
+	ld	(iy+sdrela+1),d
+	ret
+
+sdnext	rst	error ; TODO
+
+sdclose	call	dvdatiy
+	bit	sdsopen,(iy+sdstate)
+	call	z,error ; already closed
+	ld	c,(iy+sdport)
+	inc	c ; control port
+	ld	a,sdcdes
+	out	(c),a
+	res	sdsopen,(iy+sdstate)
 	ret
 
 ; get R1 respone (single byte) from card into a
@@ -143,13 +245,11 @@ sdrsp37	call	sdrsp1
 	in	l,(c)
 	ret
 
+
+sdread	equ	dvgetcr
+sdwrite	equ	dvputcr
+
 ; not implemented yet
-sdread
-sdwrite
-sdseek
-sdgetc
-sdputc
-sdctrl
-sdclose
-	rst	error
+sdputc	rst	error
+sdctrl	rst	error
 
