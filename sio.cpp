@@ -62,9 +62,11 @@ void Sio::outPort(uint16_t port, uint8_t value)
 {
     switch (port&0x0f) {
     case 0x00:
+        std::cout << value << std::flush;
         emit transmit(Channel_A, value);
         break;
     case 0x02:
+        std::cout << value << std::flush;
         emit transmit(Channel_B, value);
         break;
     }

@@ -45,7 +45,7 @@ outfgi	db	'3'
 outfg	db	'0m'
 	db	27,'[4'		; background color
 outbg	db	'0m'
-	db	' X',27,'[1m','X '
+	db	' A',27,'[1m','A '
 	db	27,'[0m '	; space after
 outln	equ	$-outstr
 
