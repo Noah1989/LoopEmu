@@ -72,7 +72,7 @@ rdescr	dw	ioerr	; read
 	dw	rinit	; init
 	dw	ropen	; open
 	dw	ioerr	; close
-	dw	dvspace + 60h
+	dw	dvspace + 60h ; needs at least 27 bytes
 
 ; memory
 mmdescr	dw	mmread	; read
@@ -80,11 +80,11 @@ mmdescr	dw	mmread	; read
 	dw	mmseek	; seek
 	dw	mmgetc	; getc
 	dw	mmputc	; putc
-	dw	ioerr	; control
+	dw	mmctrl	; control
 	dw	mminit	; init
 	dw	mmopen	; open
-	dw	ionull	; close
-	dw	dvspace + 70h
+	dw	mmclose	; close
+	dw	dvspace + 80h
 
 ; sd card
 sddescr	dw	sdread	; read
@@ -96,7 +96,19 @@ sddescr	dw	sdread	; read
 	dw	sdinit	; init
 	dw	sdopen	; open
 	dw	sdclose	; close
-	dw	dvspace + 80h
+	dw	dvspace + 90h
+
+; fat32
+ftdescr	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ftinit	; init
+	dw	ftopen	; open
+	dw	ioerr	; close
+	dw	dvspace + 0A0h
 
 ; initialize device list
 sysinit ld	hl,mdescr
@@ -130,11 +142,16 @@ sysinit ld	hl,mdescr
 	call	dvinit
 ; initialize memory
 	ld	ix,mmdescr
+	ld	de,0
 	call	dvinit
 ; initialize sdcard
 	ld	ix,sddescr
 	ld	b,0d0h
 	ld	de,sdbufs
+	call	dvinit
+; initialize fat32
+	ld	ix,ftdescr
+	ld	de,sddescr
 	call	dvinit
 ; done
 	ret

@@ -37,3 +37,26 @@ dvgetcr	push	bc
 	or	a,c
 	jr	nz,dvgetcr
 	ret
+
+; dummy device descriptors
+dverror	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ioerr	; init
+	dw	ioerr	; open
+	dw	ioerr	; close
+	dw	0
+
+dvnull	dw	dvgetcr	; read
+	dw	ionull	; write
+	dw	ionull	; seek
+	dw	ionull	; getc
+	dw	ionull	; putc
+	dw	ionull	; control
+	dw	ionull	; init
+	dw	ionull	; open
+	dw	ionull	; close
+	dw	0

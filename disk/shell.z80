@@ -248,6 +248,7 @@ shcmds	dw	shecho
 	dw	shrst
 	dw	shrun
 	dw	dump
+	dw	list
 	dw	0
 
 shecho	jr	shecho0
@@ -302,4 +303,5 @@ shrun0	call	user
 
 ; more complex commands in their own files
 	include	a:dump.inc
+	include	a:list.inc
 

@@ -126,6 +126,7 @@ errout1	in	a,(0c3h)
 	include	a:rootfs.inc
 	include	a:memdev.inc
 	include a:sdcard.inc
+	include	a:fat32.inc
 	include	a:system.inc
 
 ; main entry point

@@ -1,4 +1,6 @@
-rcurdir	equ	0
+rcurdir	equ	 0;~ 1	current directory
+rmmdesc	equ	 2;~22	dynamically allocated device descriptor
+rmmdata	equ	22;~27	and data for memory-mapped directory
 
 rinit	call	dvdatiy
 	ld	hl,rootdir
@@ -22,7 +24,10 @@ ropen0	ld	a,(hl)
 	ld	h,a
 	call	dvopen
 	ret
-ropen1	rst	error ; cannot open this type
+ropen1	cp	a,fsdir
+	jr	nz,ropen2
+; open directory
+ropen2	rst	error ; cannot open this type
 
 ; get entry by path (expects device data pointer in iy, path in de)
 
@@ -88,11 +93,18 @@ rootdir	dw	0
 	db	'devices',0
 	db	fsdir
 	dw	devdir
+	db	'files',0
+	db	fsmount
+	dw	ftdescr
 	db	0
 
 devdir	dw	rootdir
+	db	'error',0,fsdev
+	dw	dverror
 	db	'memory',0,fsdev
 	dw	mmdescr
+	db	'nothing',0,fsdev
+	dw	dvnull
 	db	'sdcard',0,fsdev
 	dw	sddescr
 	db	'video',0,fsdev

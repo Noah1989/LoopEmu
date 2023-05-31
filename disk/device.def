@@ -1,3 +1,4 @@
+; method call aliases
 dvread	equ	virt0	; DE: target, BC: length
 dvwrite	equ	virt1	; DE: source, BC: length
 dvseek	equ	virt2	; DE: address, BC'BC: block
@@ -7,5 +8,16 @@ dvctrl	equ	virt5
 dvinit	equ	virt6
 dvopen	equ	virt7
 dvclose	equ	virt8
-dvdata	equ	2 * 9
 
+; device descriptor offsets
+ddread	equ	0 ; method implementation pointers
+ddwrite	equ	2
+ddseek	equ	4
+ddgetc	equ	6
+ddputc	equ	8
+ddctrl	equ	10
+ddinit	equ	12
+ddopen	equ	14
+ddclose	equ	16
+dvdata	equ	18 ; pointer to device-specific data
+ddsize	equ	20 ; total size of a device descriptor
