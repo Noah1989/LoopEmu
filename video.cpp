@@ -13,7 +13,8 @@ Video::~Video()
 {
 }
 
-uint8_t Video::inPort(uint16_t port) {
+uint8_t Video::inPort(uint16_t port)
+{
     uint8_t result = 0;
     switch (port&0x0f) {
     case 0x08:

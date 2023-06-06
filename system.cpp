@@ -9,6 +9,7 @@ System::System(QObject *parent)
       lowerMemory(0x8000),
       upperMemory(0x8000),
       cpu(this), mhz(9.830400), fps(60.0),
+      timekeeper(this),
       video(this), sio(this),
       thread(new QThread(this)),
       timer(nullptr)
@@ -54,8 +55,10 @@ void System::load(const std::string &hexFileName)
 uint8_t System::readByte(void *arg, uint16_t addr)
 {
     System *self = static_cast<System*>(arg);
-    if (addr < 0x8000) {
+    if (addr < 0x7FF8) {
         return self->lowerMemory[addr];
+    } else if (addr < 0x8000) {
+        return self->timekeeper.getByte(addr);
     } else {
         return self->upperMemory[addr-0x8000];
     }

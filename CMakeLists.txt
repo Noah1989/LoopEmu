@@ -18,6 +18,7 @@ set(PROJECT_SOURCES
         video.h video.cpp
         ps2.h ps2.cpp
         sio.h sio.cpp
+        timekeeper.h timekeeper.cpp
         mainwindow.h mainwindow.cpp
         memoryview.h memoryview.cpp
         cpuview.h cpuview.cpp

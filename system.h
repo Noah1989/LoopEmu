@@ -2,6 +2,7 @@
 #define SYSTEM_H
 
 #include "sio.h"
+#include "timekeeper.h"
 #include "video.h"
 #include "z80.hpp"
 #include <QObject>
@@ -21,8 +22,8 @@ public:
     double mhz;
     double fps;
 
+    Timekeeper timekeeper;
     Video video;
-
     Sio sio;
 
     void load(const std::string &hexFileName);
