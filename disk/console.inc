@@ -14,9 +14,10 @@ cansid	equ	16;..31	ansi escape sequence data (16 bytes)
 	include	a:ansi.inc
 
 ; modifier bitmasks
-cmshftl	equ	001b
-cmshftr	equ	010b
-cmshift	equ	011b
+cmshftl	equ	0001b
+cmshftr	equ	0010b
+cmshift	equ	0011b
+cmctrl	equ	0100b
 
 ; state bit numbers
 csansi	equ	0
@@ -65,7 +66,11 @@ cgetc	call	cgetkey
 	jr	z,cgetc1
 	ld	bc,128
 	add	hl,bc
-cgetc1	ld	a,(hl)
+cgetc1	ld	a,(iy+cmodif)
+	and	a,cmctrl
+	ld	a,(hl)
+	ret	z
+	and	a,1fh
 	ret
 ckeyup	call	cgetkey
 ; modifier release
@@ -78,6 +83,9 @@ cmod	ld	b,cmshftl
 	jr	z,cmod1
 	ld	b,cmshftr
 	cp	a,59h
+	jr	z,cmod1
+	ld	b,cmctrl
+	cp	a,14h
 	jr	z,cmod1
 	ret	; z cleared
 cmod1	call	dvdatiy

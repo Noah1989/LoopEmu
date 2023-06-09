@@ -11,13 +11,15 @@
 shmaxln	equ	77	; maximum input line length
 shmaxtk	equ	16	; maximum number of tokens
 
-; shell data block			bytes (max 128)
+; shell data block			bytes (max 192)
 shlnbfl	equ	shdata			;   1 length of data in line buffer
 shlnbuf	equ	shlnbfl+1		;  78 line buffer space
 shlnntk	equ	shlnbuf+shmaxln+1	;   1 number of tokens
 shlntok	equ	shlnntk+1		;  32 pointers to tokens
+shhistl	equ	shlntok+2*shmaxtk	;   1 length of history line
+shhistd	equ	shhistl+1		;  78 history line data
 					; ---
-					; 112 total
+					; 191 total
 shbannr	db 27,'[1m'
 	db 27,'[93m __                ',27,'[94m_____ _',13,10
 	db 27,'[93m|  |   ___ ___ ___',27,'[94m|     |_|___ ___ ___ ',13,10
@@ -45,6 +47,9 @@ shmain	ld	ix,(dvlist+term)
 	ld	de,shbannr
 	ld	bc,shbanrl
 	rst	dvwrite
+; initialize
+	xor	a,a
+	ld	(shhistl),a
 ; print prompt
 shloop	ld	de,shprmpt
 	ld	bc,shprmtl
@@ -145,8 +150,10 @@ shrdln1	ld	e,a ; save character for later
 shrdln2	call	switch
 	db	8	; backspace
 	dw	shrdlbs
-	db	13	; return
+	db	13	; return / enter
 	dw	shrdlcr
+	db	16	; ctrl+P (history)
+	dw	shrdlhs
 	db	7fh	; delete
 	dw	shrdlbs
 	db	0	; default
@@ -172,11 +179,52 @@ shrdlbs	ld	a,(shlnbfl)
 	jr	shrdln0
 
 ; handle carriage return (enter)
-shrdlcr	ld	a,13
+shrdlcr	ld	a,(shlnbfl)
+	and	a,a
+	jr	z,shrdlc1
+; save history
+	ld	hl,shlnbfl
+	ld	de,shhistl
+	ld	bc,1+shmaxln+1
+	ldir
+; output newline and exit
+shrdlc1	ld	a,13
 	rst	dvputc
 	ld	a,10
 	rst	dvputc
 	ret
+
+; recall from history
+shrdlhs	ld	a,(shhistl)
+	and	a,a
+	jr	z,shrdln0 ; no history
+	ld	a,(shlnbfl)
+	and	a,a
+	jr	z,shrdlh1
+;clear echo
+	ld	b,a
+shrdlh0	push	bc
+	ld	a,8 ; backspace
+	rst	dvputc
+	ld	a,' '
+	rst	dvputc
+	ld	a,8
+	rst	dvputc
+	pop	bc
+	djnz	shrdlh0
+; copy buffer
+shrdlh1	ld	de,shlnbfl
+	ld	hl,shhistl
+	ld	bc,1+shmaxln+1
+	ldir
+; echo back
+	ld	a,(shlnbfl)
+	ld	c,a
+	ld	b,0
+	ld	de,shlnbuf
+	rst	dvwrite
+; continue editing line
+	jp	shrdln0
 
 ; LEXICAL ANALYSIS
 
