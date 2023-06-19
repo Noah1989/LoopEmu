@@ -110,6 +110,18 @@ ftdescr	dw	ioerr	; read
 	dw	ioerr	; close
 	dw	dvspace + 0A0h
 
+; timekeeper
+tkdescr	dw	mmread	; read
+	dw	mmwrite	; write
+	dw	mmseek	; seek
+	dw	mmgetc	; getc
+	dw	mmputc	; putc
+	dw	mmctrl	; control
+	dw	mminit	; init
+	dw	mmopen	; open
+	dw	mmclose	; close
+	dw	dvspace + 0B0h
+
 ; initialize device list
 sysinit ld	hl,mdescr
 	ld	(dvlist+term),hl
@@ -153,5 +165,11 @@ sysinit ld	hl,mdescr
 	ld	ix,ftdescr
 	ld	de,sddescr
 	call	dvinit
+; initialize timekeeper
+	ld	ix,tkdescr
+	ld	de,7ff8h
+	call	dvinit
 ; done
 	ret
+
+

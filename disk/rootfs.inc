@@ -107,6 +107,8 @@ devdir	dw	rootdir
 	dw	dvnull
 	db	'sdcard',0,fsdev
 	dw	sddescr
+	db	'timekeeper',0,fsdev
+	dw	tkdescr
 	db	'video',0,fsdev
 	dw	vdescr
 	db	0

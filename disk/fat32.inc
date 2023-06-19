@@ -6,3 +6,5 @@ ftinit	call	dvdatiy
 	ret
 
 ftopen	rst	error	; TODO
+
+
