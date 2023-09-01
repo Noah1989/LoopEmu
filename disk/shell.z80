@@ -278,13 +278,14 @@ shlexqt	inc	de
 	ld	(hl),d
 	inc	hl
 	ld	b,a ; opening quote char
-shlexq1	inc	de
-	ld	a,(de)
+shlexq1	ld	a,(de)
+	inc	de
 	and	a,a
 	ret	z	; end of line (no closing quote, but that's OK)
 	cp	a,b
 	jr	nz,shlexq1
 	xor	a,a
+	dec	de
 	ld	(de),a
 	inc	de
 	jr	shlex1

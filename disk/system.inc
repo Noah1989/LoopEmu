@@ -72,7 +72,7 @@ rdescr	dw	ioerr	; read
 	dw	rinit	; init
 	dw	ropen	; open
 	dw	ioerr	; close
-	dw	dvspace + 60h ; needs at least 27 bytes
+	dw	dvspace + 60h ; needs 27 bytes
 
 ; memory
 mmdescr	dw	mmread	; read

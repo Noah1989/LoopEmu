@@ -1,38 +1,94 @@
 rcurdir	equ	 0;~ 1	current directory
-rmmdesc	equ	 2;~22	dynamically allocated device descriptor
-rmmdata	equ	22;~27	and data for memory-mapped directory
+rmmdesc	equ	 2;~21	dynamically allocated device descriptor
+rmmdata	equ	22;~26	and data for memory-mapped directory
+
+; memory
+rmmtplt	dw	mmread	; read
+	dw	ioerr	; write
+	dw	mmseek	; seek
+	dw	mmgetc	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	mminit	; init
+	dw	mmopen	; open
+	dw	mmclose	; close
+	dw	0
 
 rinit	call	dvdatiy
 	ld	hl,rootdir
 	ld	(iy+rcurdir),l
 	ld	(iy+rcurdir+1),h
+	db	0fdh ; use iy
+	ld	e,l
+	db	0fdh ; use iy
+	ld	d,h
+	ld	hl,rmmdesc
+	add	hl,de
+	ex	de,hl
+	push	de
+	ld	hl,rmmtplt
+	ld	bc,ddsize
+	ldir	; after this, de points to rmmdata
+	ld	(iy+rmmdesc+dvdata),e
+	ld	(iy+rmmdesc+dvdata+1),d
+	ex	(sp),ix ; pushed de from earlier
+	ld	de,rootdir
+	call	dvinit
+	pop	ix
 	ret
 
 ropen	call	dvdatiy
-	call	rpath
+	inc	de	; check for special paths / and .
+	ld	a,(de)
+	dec	de
+	and	a,a
+	jr	nz,ropen03
+	ld	a,(de)
+	cp	a,'/'
+	jr	nz,ropen02
+	ld	de,rootdir
+	jr	ropend
+ropen02	cp	a,'.'
+	jr	nz,ropen03
+	ld	e,(iy+rcurdir)
+	ld	d,(iy+rcurdir+1)
+	jr	ropend
+ropen03	call	rpath
 	ld	a,(hl) 	; entry type
 	inc	hl
 	cp	a,fsdev
 	jr	nz,ropen1
 ; open device
-ropen0	ld	a,(hl)
-	db	0ddh ; use ixl
+	ld	a,(hl)
+	db	0ddh ; use ix
 	ld	l,a
 	inc	hl
 	ld	a,(hl)
-	db	0ddh ; use ixh
+	db	0ddh ; use ix
 	ld	h,a
 	call	dvopen
 	ret
 ropen1	cp	a,fsdir
 	jr	nz,ropen2
 ; open directory
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl) ; pointer to dir data in de
+ropend	bit	mmsopen,(iy+rmmdata+mmstate)
+	call	nz,error ; another dir still open
+	db	0fdh
+	ld	c,l;iy
+	db	0fdh
+	ld	b,h;iy
+	ld	ix,rmmdesc
+	add	ix,bc ; memory mapped dir
+	call	dvinit ; set offset to de
+	call	dvopen
+	ret
 ropen2	rst	error ; cannot open this type
 
 ; get entry by path (expects device data pointer in iy, path in de)
-
-rpath	call	dvdatiy
-	ld	a,(de)
+rpath	ld	a,(de)
 	and	a,a
 	call	z,error
 	cp	a,'/'
@@ -42,6 +98,7 @@ rpath	call	dvdatiy
 	jr	rpath2
 rpath1	ld	hl,rootdir
 	inc	de
+	
 rpath2	push	de
 	inc	hl
 rpath3	inc	hl
