@@ -37,6 +37,26 @@ rinit	call	dvdatiy
 	pop	ix
 	ret
 
+rctrl	cp	a,fscinfo
+	call	nz,error ; invalid control code
+; get file info
+rcinfo	inc	de ; return fstdir for . and /
+	ld	a,(de)
+	dec	de
+	and	a,a
+	jr	nz,rcinfo1
+	ld	a,(de)
+	cp	a,'.'
+	jr	z,rcinfo0
+	cp	a,'/'
+	jr	nz,rcinfo1
+rcinfo0	ld	a,fstdir
+	ret
+rcinfo1	call	dvdatiy
+	call	rpath
+	ld	a,(hl) ; entry type
+	ret
+
 ropen	call	dvdatiy
 	inc	de	; check for special paths / and .
 	ld	a,(de)
@@ -56,7 +76,7 @@ ropen02	cp	a,'.'
 ropen03	call	rpath
 	ld	a,(hl) 	; entry type
 	inc	hl
-	cp	a,fsdev
+	cp	a,fstdev
 	jr	nz,ropen1
 ; open device
 	ld	a,(hl)
@@ -68,7 +88,7 @@ ropen03	call	rpath
 	ld	h,a
 	call	dvopen
 	ret
-ropen1	cp	a,fsdir
+ropen1	cp	a,fstdir
 	jr	nz,ropen2
 ; open directory
 	ld	e,(hl)
@@ -121,7 +141,7 @@ rpath4	cp	a,'/'
 ; subpath matched (difference was '/' vs. nul)
 	inc	hl
 	ld	a,(hl)
-	cp	a,fsdir
+	cp	a,fstdir
 	call	nz,error ; not a directory
 	pop	bc ; old saved subpath pointer no longer needed
 	push	de ; this is the new one, pointing to remaining part
@@ -148,24 +168,24 @@ rpath5	xor	a
 
 rootdir	dw	0
 	db	'devices',0
-	db	fsdir
+	db	fstdir
 	dw	devdir
 	db	'files',0
-	db	fsmount
-	dw	ftdescr
-	db	0
+	db	fstmnt
+	dw	f32desc
+	db	0,0
 
 devdir	dw	rootdir
-	db	'error',0,fsdev
+	db	'error',0,fstdev
 	dw	dverror
-	db	'memory',0,fsdev
+	db	'memory',0,fstdev
 	dw	mmdescr
-	db	'nothing',0,fsdev
+	db	'nothing',0,fstdev
 	dw	dvnull
-	db	'sdcard',0,fsdev
+	db	'sdcard',0,fstdev
 	dw	sddescr
-	db	'timekeeper',0,fsdev
+	db	'timekeeper',0,fstdev
 	dw	tkdescr
-	db	'video',0,fsdev
+	db	'video',0,fstdev
 	dw	vdescr
-	db	0
+	db	0,0

@@ -1,10 +1,12 @@
-ftblkdv	equ	0
+f32blkd	equ	0
 
-ftinit	call	dvdatiy
-	ld	(iy+ftblkdv),e
-	ld	(iy+ftblkdv+1),d
+f32init	call	dvdatiy
+	ld	(iy+f32blkd),e
+	ld	(iy+f32blkd+1),d
 	ret
 
-ftopen	rst	error	; TODO
+f32open	call	dvdatiy
+	
+	rst	error	; TODO
 
 

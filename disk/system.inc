@@ -68,7 +68,7 @@ rdescr	dw	ioerr	; read
 	dw	ioerr	; seek
 	dw	ioerr	; getc
 	dw	ioerr	; putc
-	dw	ioerr	; control
+	dw	rctrl	; control
 	dw	rinit	; init
 	dw	ropen	; open
 	dw	ioerr	; close
@@ -99,14 +99,14 @@ sddescr	dw	sdread	; read
 	dw	dvspace + 90h
 
 ; fat32
-ftdescr	dw	ioerr	; read
+f32desc	dw	ioerr	; read
 	dw	ioerr	; write
 	dw	ioerr	; seek
 	dw	ioerr	; getc
 	dw	ioerr	; putc
 	dw	ioerr	; control
-	dw	ftinit	; init
-	dw	ftopen	; open
+	dw	f32init	; init
+	dw	f32open	; open
 	dw	ioerr	; close
 	dw	dvspace + 0A0h
 
@@ -162,7 +162,7 @@ sysinit ld	hl,mdescr
 	ld	de,sdbufs
 	call	dvinit
 ; initialize fat32
-	ld	ix,ftdescr
+	ld	ix,f32desc
 	ld	de,sddescr
 	call	dvinit
 ; initialize timekeeper

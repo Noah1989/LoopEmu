@@ -1,4 +1,9 @@
-fsdir	equ	1
-fsdev	equ	2
-fsmount	equ	3
+; dir entry types
+fstdev	equ	3 ; device
+fstmnt	equ	5 ; mount point
+fstdir	equ	6 ; subdirectory
+fstfile	equ	7 ; regular file
+
+; control codes
+fscinfo	equ	1
 

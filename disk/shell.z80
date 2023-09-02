@@ -4,6 +4,7 @@
 	include	a:system.def
 	include	a:device.def
 	include	a:utils.def
+	include	a:fs.def
 
 	org	shell
 	jp	shmain
