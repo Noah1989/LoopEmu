@@ -39,14 +39,18 @@ list2	ld	(iy+lstpath),e
 	call	switch
 	db	fstdir ; directory
 	dw	lstdir
+	db	fstmnt ; mount point
+	dw	lstdir
 	db	0 ; default
-	dw	error
+	dw	lsterr
 listend	pop	ix ; stdout
 ; clean up stack
 	ld	hl,lstvars
 	add	hl,sp
 	ld	sp,hl
 	ret
+
+lsterr	rst	error
 
 ; list directory
 lstdir	ld	e,(iy+lstpath)

@@ -98,18 +98,6 @@ sddescr	dw	sdread	; read
 	dw	sdclose	; close
 	dw	dvspace + 90h
 
-; fat32
-f32desc	dw	ioerr	; read
-	dw	ioerr	; write
-	dw	ioerr	; seek
-	dw	ioerr	; getc
-	dw	ioerr	; putc
-	dw	ioerr	; control
-	dw	f32init	; init
-	dw	f32open	; open
-	dw	ioerr	; close
-	dw	dvspace + 0A0h
-
 ; timekeeper
 tkdescr	dw	mmread	; read
 	dw	mmwrite	; write
@@ -120,7 +108,20 @@ tkdescr	dw	mmread	; read
 	dw	mminit	; init
 	dw	mmopen	; open
 	dw	mmclose	; close
-	dw	dvspace + 0B0h
+	dw	dvspace + 0A0h
+
+; fat32
+f32desc	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	f32init	; init
+	dw	f32open	; open
+	dw	ioerr	; close
+	dw	dvspace + 0B0h ; needs a lot of space
+
 
 ; initialize device list
 sysinit ld	hl,mdescr

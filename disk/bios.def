@@ -14,11 +14,11 @@ virt8	equ	0e0h
 shell	equ	1000h;		shell code area
 charmap	equ	5000h;..6fffh	character bitmap
 stackl	equ	7000h;		stack limit
-stack	equ	7c00h;		stack below this address
-sdbufs	equ	7c00h;..7dffh	sd card sector buffer
-shdata	equ	7e00h;..7ebfh	shell data space
-dvlist	equ	7ec0h;..7ecfh	global device list
-dvspace	equ	7f00h;..7fefh	device data space
+stack	equ	7b00h;		stack below this address
+sdbufs	equ	7b00h;..7cffh	sd card sector buffer
+shdata	equ	7d00h;..7dbfh	shell data space
+dvlist	equ	7dc0h;..7dcfh	global device list
+dvspace	equ	7e00h;..7fefh	device data space
 temp	equ	7ff0h;..7ff7h	scratch space
 timekpr	equ	7ff8h;..7fffh	real time clock / calendar
 user	equ	8000h;		user code area

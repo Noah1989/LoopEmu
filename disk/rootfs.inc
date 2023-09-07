@@ -55,6 +55,26 @@ rcinfo0	ld	a,fstdir
 rcinfo1	call	dvdatiy
 	call	rpath
 	ld	a,(hl) ; entry type
+	cp	a,fstmnt
+	ret	nz
+	; recurse into other filesystem ...
+	ld	a,(de)
+	and	a,a ; ... unless subbpath is empty
+	jr	nz,rcinfo2
+	ld	a,fstmnt
+	ret
+rcinfo2	push	ix
+	inc	hl
+	ld	a,(hl)
+	db	0ddh ; use ix
+	ld	l,a
+	inc	hl
+	ld	a,(hl)
+	db	0ddh ; use ix
+	ld	h,a
+	ld	a,fscinfo
+	rst	dvctrl
+	pop	ix
 	ret
 
 ropen	call	dvdatiy
@@ -76,9 +96,9 @@ ropen02	cp	a,'.'
 ropen03	call	rpath
 	ld	a,(hl) 	; entry type
 	inc	hl
-	cp	a,fstdev
-	jr	nz,ropen1
-; open device
+	cp	a,fstdir
+	jr	z,ropen1
+; open device or mount point
 	ld	a,(hl)
 	db	0ddh ; use ix
 	ld	l,a
@@ -86,12 +106,10 @@ ropen03	call	rpath
 	ld	a,(hl)
 	db	0ddh ; use ix
 	ld	h,a
-	call	dvopen
+	call	dvopen ; de points to subpath, if any
 	ret
-ropen1	cp	a,fstdir
-	jr	nz,ropen2
 ; open directory
-	ld	e,(hl)
+ropen1	ld	e,(hl)
 	inc	hl
 	ld	d,(hl) ; pointer to dir data in de
 ropend	bit	mmsopen,(iy+rmmdata+mmstate)
@@ -105,12 +123,11 @@ ropend	bit	mmsopen,(iy+rmmdata+mmstate)
 	call	dvinit ; set offset to de
 	call	dvopen
 	ret
-ropen2	rst	error ; cannot open this type
 
 ; get entry by path (expects device data pointer in iy, path in de)
 rpath	ld	a,(de)
 	and	a,a
-	call	z,error
+	call	z,error ; empty path
 	cp	a,'/'
 	jr	z,rpath1
 	ld	l,(iy+rcurdir)
@@ -129,8 +146,9 @@ rpath31	ld	a,(de)
 	and	a,a
 	jr	nz,rpath3
 ; final match (both strings ending)
-	inc	hl
-	pop	de ; conveniently points to filename part now
+	inc	hl ; points to file type now
+	pop	bc ; points to filename part now
+	dec	de ; points to null terminator
 	ret
 ; difference found
 rpath4	cp	a,'/'
@@ -139,12 +157,16 @@ rpath4	cp	a,'/'
 	and	a,a
 	jr	nz,rpath5
 ; subpath matched (difference was '/' vs. nul)
-	inc	hl
-	ld	a,(hl)
-	cp	a,fstdir
-	call	nz,error ; not a directory
 	pop	bc ; old saved subpath pointer no longer needed
-	push	de ; this is the new one, pointing to remaining part
+	inc	hl
+	ld	a,(hl) ; check type
+	cp	a,fstmnt ; mount point (other file system)
+	jr	nz,rpath41
+	dec	de	; pointer to remaining path
+	ret		; including leading '/'
+rpath41	cp	a,fstdir
+	call	nz,error ; not a directory
+	push	de ; this is the new subpath
 	inc	hl
 	ld	e,(hl)
 	inc	hl
