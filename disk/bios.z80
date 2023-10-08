@@ -130,7 +130,7 @@ errout1	in	a,(0c3h)
 	include	a:system.inc
 
 ; main entry point
-; clear stack memory
+; clear stack and data memory
 init	ld	hl,stackl
 	ld	de,stackl+1
 	ld	bc,timekpr-stackl-1

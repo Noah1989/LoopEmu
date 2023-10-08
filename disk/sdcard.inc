@@ -255,7 +255,7 @@ sdclose	call	dvdatiy
 	res	sdsopen,(iy+sdstate)
 	ret
 
-; get R1 respone (single byte) from card into a
+; get R1 response (single byte) from card into a
 ; z flag indicates failure
 sdrsp1	ld	c,(iy+sdport)
 	ld	b,8
