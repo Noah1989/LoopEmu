@@ -10,6 +10,39 @@ f32rdfc	equ	14;~17	root dir first cluster
 f32fat	equ	18;~21	LBA of FAT
 f32cl0	equ	22;~25	LBA of (imaginary) cluster 0 (clusters start at 2!)
 f32shft	equ	26;	log2 of blocks per cluster (for bit shift multiply)
+; space for device descriptors (8*20 = 160) bytes
+f32ddes	equ	27;~186
+; space for device (file/dir) state data (8*10 = 80) bytes
+f32ddat	equ	187;~266
+
+; internal state of device representing open file/directory
+f32offc	equ	0;~3	first cluster
+f32ofcc	equ	4;~7	current cluster
+f32ofca	equ	8;~9	current address (relative to cluster)
+
+; template for device descriptor (directory)
+f32dtpl	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ioerr	; init
+	dw	ioerr	; open
+	dw	ioerr	; close
+	dw	0
+
+; template for device descriptor (regular file)
+f32ftpl	dw	ioerr	; read
+	dw	ioerr	; write
+	dw	ioerr	; seek
+	dw	ioerr	; getc
+	dw	ioerr	; putc
+	dw	ioerr	; control
+	dw	ioerr	; init
+	dw	ioerr	; open
+	dw	ioerr	; close
+	dw	0
 
 f32init	call	dvdatiy
 	ld	(iy+f32blkd),e
@@ -219,10 +252,10 @@ f32op02	rlca
 	rst	error ; 8 shifts, no carry (a was 0)
 f32op03	dec	b
 	ld	(iy+f32shft),b
+; END OF METADATA INITIALIZATION
 
-f32opn1	
-
-	pop	de ; saved path parameter
+; Here the filesystem is ready and we can go and find the path
+f32opn1	pop	de ; saved path parameter
 
 	rst	error	; TODO
 	pop	ix

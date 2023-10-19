@@ -2,7 +2,7 @@ rcurdir	equ	 0;~ 1	current directory
 rmmdesc	equ	 2;~21	dynamically allocated device descriptor
 rmmdata	equ	22;~26	and data for memory-mapped directory
 
-; memory
+; template for device descriptor
 rmmtplt	dw	mmread	; read
 	dw	ioerr	; write
 	dw	mmseek	; seek
