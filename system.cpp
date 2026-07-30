@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cmath>
 
-System::System(QObject *parent)
+System::System(const std::vector<std::string> &extraHexFiles, QObject *parent)
     : QObject{parent},
       lowerMemory(0x8000),
       upperMemory(0x8000),
@@ -21,6 +21,13 @@ System::System(QObject *parent)
     load("disk/shell.hex");
     load("disk/charmap.hex");
     load("disk/test.hex");
+
+    // Extra images from the command line are loaded last, so they can replace
+    // whatever the defaults put at the same addresses -- e.g. a program linked
+    // to the user code area at 8000h, which `run` then starts.
+    for (const std::string &hexFileName : extraHexFiles) {
+        load(hexFileName);
+    }
 
     cpu.setupCallbackFP(readByte, writeByte, inPort, outPort);
     moveToThread(thread);

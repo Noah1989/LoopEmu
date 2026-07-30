@@ -13,7 +13,8 @@ class System : public QObject
 {
     Q_OBJECT
 public:
-    System(QObject *parent = nullptr);
+    System(const std::vector<std::string> &extraHexFiles = {},
+           QObject *parent = nullptr);
     ~System();
     std::vector<uint8_t> lowerMemory;
     std::vector<uint8_t> upperMemory;
