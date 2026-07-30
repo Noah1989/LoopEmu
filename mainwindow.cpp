@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ps2.h"
 
+#include <QApplication>
 #include <QDockWidget>
 #include <QMdiSubWindow>
 #include <QKeyEvent>
@@ -34,6 +35,9 @@ MainWindow::MainWindow(System *system, QWidget *parent)
         }
     });
 
+    // See eventFilter(): the emulated keyboard has to see keys before Qt does.
+    qApp->installEventFilter(this);
+
     connect(system, &System::frame, lowerMemoryView, &MemoryView::update);
     connect(system, &System::frame, upperMemoryView, &MemoryView::update);
     connect(system, &System::frame, cpuView, &CpuView::update);
@@ -50,6 +54,21 @@ QDockWidget* MainWindow::addToDock(Qt::DockWidgetArea area, QWidget *widget, con
     dock->setWidget(widget);
     addDockWidget(area, dock);
     return dock;
+}
+
+// Every key event goes to the emulated keyboard, before Qt can spend it on
+// focus navigation. Without this the cursor keys never reach the machine at
+// all: QMainWindow::keyPressEvent only sees what the focused widget ignored,
+// and the docks and MDI area consume the arrows and Tab to move focus.
+// Nothing here takes text input -- the register fields are read-only -- so the
+// guest can have the whole keyboard.
+bool MainWindow::eventFilter(QObject *watched, QEvent *ev)
+{
+    if (ev->type() == QEvent::KeyPress || ev->type() == QEvent::KeyRelease) {
+        onKeyEvent(static_cast<QKeyEvent *>(ev));
+        return true;
+    }
+    return QMainWindow::eventFilter(watched, ev);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)
