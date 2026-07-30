@@ -15,8 +15,8 @@ switch3	add	hl,bc
 	ld	e,a
 	xor	a,a
 	cp	a,(hl)
-	jr	z,switch2
 	ld	a,e
+	jr	z,switch2
 	jr	switch1
 
 	org	fromhex

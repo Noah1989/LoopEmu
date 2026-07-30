@@ -186,7 +186,7 @@ cputc	ld	b,a
 	db	27	; escape
 	dw	cputesc
 	db	0	; default
-	dw	ionull
+	dw	cputc3
 cputc3	push	ix
 	push	af
 	call	cvdevix
