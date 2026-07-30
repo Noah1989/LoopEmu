@@ -73,7 +73,7 @@ void VgaView::render()
     for (int x = 0; x < 640; ++x) {
         for (int y = 0; y < 480; ++y) {
             int vx = ((zx?(x/2+2):(x+3))+sx)&0x3ff;
-            int vy = ((zy?(x/2+2):(y+4))+sy)&0x3ff;
+            int vy = ((zy?(y/2+2):(y+4))+sy)&0x3ff;
             int tx = vx/8;
             int ty = vy/8 % 64;
             if (tm) {
