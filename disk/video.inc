@@ -2,12 +2,24 @@ defattr	equ	07h
 
 	include	a:video.def
 
-; timing values (see silkscreen on card)
+; Timing values for the sync generator, X0..XA. The SYNC card's silkscreen
+; lists them and was the source for this table.
+;
+; THE SILKSCREEN IS WRONG BY ONE IN X9, AND SO WAS THIS TABLE UNTIL 2026-08-03.
+; It reads X9=F4, a row preset of 500, which gives a 524-line frame at
+; 60.054 Hz instead of the standard 525 at 59.940. The row counter's overflow
+; asserts ~PE, which is not gated by the count enable and clears again on the
+; next pixel, so its reload consumes no line -- where the column counter's
+; does. The row total is therefore 1024-preset and the column total is
+; 1024-preset+1, and the row preset has to be one lower to compensate:
+; F3h = 499. Measured on the hardware, both values, before and after.
+;
+; A monitor locks to 60.05 Hz without complaint, which is why it went unnoticed.
 vtiming	db	0d9h,039h
 	db	0d4h,074h
 	db	0f6h,07eh
 	db	0e4h,0e2h
-	db	0e1h,0f4h
+	db	0e1h,0f3h	; X9 was 0f4h -- see above
 	db	090h
 
 ; data block indices
