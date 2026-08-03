@@ -73,7 +73,13 @@ void VgaView::render()
     for (int x = 0; x < 640; ++x) {
         for (int y = 0; y < 480; ++y) {
             int vx = ((zx?(x/2+2):(x+3))+sx)&0x3ff;
-            int vy = ((zy?(y/2+2):(y+4))+sy)&0x3ff;
+            // +5, not +4, since the X9 timing fix of 2026-08-03: the frame
+            // gained its 525th line and it falls between the row counter's
+            // reload and the first active line, which is exactly what this
+            // offset counts. The zoom case is left at +2 -- 5 lines is 2.5
+            // canvas rows there and there is no hardware measurement to say
+            // which way it rounds. See 8bit/VIDEO.md section 5.
+            int vy = ((zy?(y/2+2):(y+5))+sy)&0x3ff;
             int tx = vx/8;
             int ty = vy/8 % 64;
             if (tm) {

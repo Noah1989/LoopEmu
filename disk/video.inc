@@ -28,8 +28,17 @@ vtable	equ	1 ; currently selected table (I/O address)
 vmodif	equ	2 ; saved state of the vscrh register
 
 ; scroll offsets to make tile 0 appear on the top left corner of the screen
+; Scroll offsets that put canvas (0,0) at the top left of the screen: they
+; cancel the fixed offset the hardware's address generation adds, which is the
+; number of pixels/lines between a counter reload and the first active one.
+;
+; voffsy WENT FROM -4 TO -5 ON 2026-08-03, with the X9 timing fix above. That
+; gave the frame its missing 525th line, and the extra line lands between the
+; row counter's reload and the start of active video -- so video output has to
+; begin one line later to arrive in the visible area at the same place. Without
+; this the top text line is scrolled off the screen.
 voffsx	equ	-3
-voffsy	equ	-4
+voffsy	equ	-5
 
 vctrl	ld	b,a
 	call	dvdatiy
