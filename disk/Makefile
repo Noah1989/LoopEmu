@@ -1,7 +1,7 @@
 all: bios.hex shell.hex charmap.hex test.hex
 
 version.def: *.z80 *.inc *.def
-	echo "\tdb\t'$$(date +%Y-%m-%dT%H:%M)'\n" > version.def
+	printf "\tdb\t'%s'\n\n" "$$(date +%Y-%m-%dT%H:%M)" > version.def
 	unix2dos version.def
 
 bios.hex:  *.inc *.def
